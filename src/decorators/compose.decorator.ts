@@ -1,11 +1,12 @@
 import {Permission} from "@/enums/permission";
 import {PermissionGuard} from "@/guards/permission.guard";
-import {applyDecorators, SetMetadata, UseGuards} from "@nestjs/common";
+import {applyDecorators, Query, SetMetadata, UseGuards} from "@nestjs/common";
 
 export function ComposedDecorator(...permissions: Permission[]) {
   return applyDecorators(
     SetMetadata('permissions', permissions),
-    UseGuards(PermissionGuard),
+    // UseGuards(PermissionGuard),
+    // Query('permissions'),
     // ApiBearerAuth(),
     // ApiUnauthorizedResponse({ description: 'Unauthorized' }),
   );
@@ -13,4 +14,5 @@ export function ComposedDecorator(...permissions: Permission[]) {
 
 // @Get('users')
 // @ComposedDecorator('create')
+// findAllUsers() {}
 

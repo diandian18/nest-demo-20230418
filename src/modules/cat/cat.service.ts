@@ -1,4 +1,6 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {CONNECTION} from '@/consts/customProvider';
+import {Connection} from '@/customProviders/aExample';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import {Cat} from './interfaces/cat.interface';
 
 @Injectable()
@@ -8,6 +10,9 @@ export default class CatsService {
   // constructor(@Optional() @Inject('HTTP_OPTIONS') private httpClient: T) {
     // console.log(httpClient);
   // }
+  constructor(@Inject(CONNECTION) connection: Connection) {
+    console.log('[CatsService] connection: ', connection);
+  }
 
   create(cat: Cat) {
     this.cats.push(cat);

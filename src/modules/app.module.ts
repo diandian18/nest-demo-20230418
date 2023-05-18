@@ -18,6 +18,8 @@ import {ExcludeNullInterceptor} from '@/interceptors/excludeNull.interceptor';
 import {ErrorsInterceptor} from '@/interceptors/errors.interceptor';
 import {CacheInterceptor} from '@/interceptors/cache.interception';
 import {TimeoutInterceptor} from '@/interceptors/timeout.interceptor';
+import {connection} from '@/customProviders/aExample';
+import {CONNECTION} from '@/consts/customProvider';
 
 @Module({
   imports: [ 
@@ -68,7 +70,30 @@ import {TimeoutInterceptor} from '@/interceptors/timeout.interceptor';
     {
       provide: APP_INTERCEPTOR,
       useClass: TimeoutInterceptor,
+    }, 
+    // Class providers 写法
+    /* {
+      provide: ConfigService,
+      useClass: process.env.NODE_ENV === 'development'
+        ? DevConfigService
+        : ProdConfigService,
+    },*/
+    // Factory providers 写法
+    /*{
+      provide: CONNECTION,
+      useFactory(optionsProvider: OptionsProvider, optionalProvider?: string) {
+        const options = optionsProvider.get(); 
+        return new DatabaseConnection(options);
+      },
+      inject: [OptionsProvider, { token: 'SomeOptionalProvider', optional: true }],
     },
+    OptionsProvider,*/
+    // Alias Providers 写法
+    /*const loggerAliasProvider = {
+      provide: 'AliasedLoggerService',
+      useExisting: LoggerService,
+    }
+    @Moudle({providers: [LoggerService, LoggerAliasProvider]})*/
   ],
 })
 export class AppModule implements NestModule {
