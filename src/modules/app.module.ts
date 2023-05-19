@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { Controller, Get, MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
 import {APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE} from '@nestjs/core';
 import {CatController} from './cat/cat.controller.temp';
@@ -20,12 +20,39 @@ import {CacheInterceptor} from '@/interceptors/cache.interception';
 import {TimeoutInterceptor} from '@/interceptors/timeout.interceptor';
 import {connection} from '@/customProviders/aExample';
 import {CONNECTION} from '@/consts/customProvider';
+import {ConfigService} from './config/config.service';
+
+@Controller('/')
+export class AppController {
+  constructor(private readonly configService: ConfigService) {}
+  @Get('test')
+  testConfigService() {
+    console.log(this.configService.get('REDIS_PASS'));
+  }
+}
 
 @Module({
   imports: [ 
     CatModule,
     UserModule,
-    ConfigModule.register({ folder: './config' }), 
+    ConfigModule.register({
+      folder: './config',
+      isGlobal: true, // isGlobal不会被@Inject
+    }), 
+    // ConfigModule.customFuncName({ folder: './config' }), 
+    /*ConfigModule.registerAsync({
+      // ????
+      useClass: ConfigModuleOptionsFactory, // <-- this class must provide the "createConfigOptions" method
+    }),*/
+    // 或者
+    // ConfigModule.registerAsync({
+    //   useFactory: () => {
+    //     return {
+    //       folder: './config',
+    //     };
+    //   },
+    //   inject: [...any extra dependencies],
+    // }),
     RedisModule,
     // CacheModule.register<RedisClientOptions>({
     //   isGlobal: true,
@@ -95,6 +122,7 @@ import {CONNECTION} from '@/consts/customProvider';
     }
     @Moudle({providers: [LoggerService, LoggerAliasProvider]})*/
   ],
+  controllers: [AppController],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
@@ -110,5 +138,6 @@ export class AppModule implements NestModule {
       )
       .forRoutes(CatController);
   }
+
 }
 
