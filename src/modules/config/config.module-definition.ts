@@ -1,7 +1,7 @@
 import {ConfigurableModuleBuilder} from "@nestjs/common";
 import {ConfigOptions} from "./types";
 
-export const {ConfigurableModuleClass, MODULE_OPTIONS_TOKEN/* CONFIG_OPTIONS */} = new ConfigurableModuleBuilder<ConfigOptions>()
+export const {ConfigurableModuleClass, MODULE_OPTIONS_TOKEN, OPTIONS_TYPE, ASYNC_OPTIONS_TYPE/* CONFIG_OPTIONS */} = new ConfigurableModuleBuilder<ConfigOptions>()
   .setExtras(
     // 第一个参数为了设置默认值
     {

@@ -1,8 +1,6 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import {ConfigurableModuleClass} from './config.module-definition';
+import {ASYNC_OPTIONS_TYPE, ConfigurableModuleClass, OPTIONS_TYPE} from './config.module-definition';
 import { ConfigService } from './config.service';
-import {CONFIG_OPTIONS} from './consts';
-import {ConfigOptions} from './types';
 
 /*
 // 用ConfigurableModuleClass替代简化这里
@@ -27,5 +25,21 @@ export class ConfigModule {
   providers: [ConfigService],
   exports: [ConfigService],
 })
-export class ConfigModule extends ConfigurableModuleClass {}
+export class ConfigModule extends ConfigurableModuleClass {
+  // The auto-generated static methods (register, registerAsync, etc.) can be extended if needed, as follows:
+  // 会影响imports
+  static register(options: typeof OPTIONS_TYPE): DynamicModule {
+    return {
+      // your custom logic here
+      ...super.register(options),
+    };
+  }
+
+  static registerAsync(options: typeof ASYNC_OPTIONS_TYPE): DynamicModule {
+    return {
+      // your custom logic here
+      ...super.registerAsync(options),
+    };
+  }
+}
 
