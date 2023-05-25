@@ -2,12 +2,23 @@ import StatusCodeEnum from '@/enums/StatusCodeEnum';
 import {BusinessException} from '@/utils/businessException';
 import genResponse from '@/utils/genResponse';
 import { Body, Controller, Post } from '@nestjs/common';
-import {LoginDto, registerDto} from './user.dto';
+import {LoginDto, registerDto, UserDto} from './user.dto';
 import {UserService} from './user.service';
 
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
+
+  @Post('createMany')
+  createMany(@Body() users: UserDto[]) {
+    try {
+      this.userService.createMany(users);
+      return genResponse.success();
+    } catch (err) {
+      console.log(err);
+      throw new BusinessException(genResponse.fail(StatusCodeEnum.UNKNOWN_ERROR.code, JSON.stringify(err)));
+    }
+  }
 
   @Post('/register')
   register(@Body() registerDto: registerDto) {

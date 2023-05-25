@@ -1,4 +1,14 @@
-import {IsString} from 'class-validator';
+import {IsArray, IsString} from 'class-validator';
+import {Photo} from './user.entity';
+
+export class UserDto {
+  @IsString()
+  firstName: string;
+  @IsString()
+  lastName: string;
+  @IsArray()
+  photos: Photo[];
+}
 
 export class registerDto {
   @IsString()

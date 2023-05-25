@@ -11,9 +11,11 @@ export class PermissionGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
-    // 通过reflector获取getMetaData
+    // 通过reflector获取getMetaData，还有一个getAllAndMerge，结果: ['user', 'admin']
     const permissions = this.reflector.getAllAndOverride<Permission[]>(PERMISSION_KEY, [
+      // @Permission写在成员方法
       context.getHandler(),
+      // @Permission写在类上
       context.getClass(),
     ]);
  

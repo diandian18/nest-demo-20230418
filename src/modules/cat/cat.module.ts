@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common';
+import { forwardRef, Global, Module } from '@nestjs/common';
 import CatsService from './cat.service';
 import { CatController } from './cat.controller';
 import {CacheModule} from '@nestjs/cache-manager';
@@ -6,6 +6,8 @@ import {redisStore} from 'cache-manager-redis-store';
 import {RedisClientOptions} from 'redis';
 import {CONNECTION} from '@/consts/customProvider';
 import {connection} from '@/customProviders/aExample';
+import {CommonModule} from '../common/common.module';
+import {CommonService} from '../common/common.service';
 
 // @Global()
 @Module({
@@ -16,6 +18,9 @@ import {connection} from '@/customProviders/aExample';
   //     port: 6379,
   //   }),
   // ],
+  // imports: [
+  //   forwardRef(() => CommonModule),
+  // ],
   controllers: [CatController],
   providers: [
     CatsService,
@@ -25,6 +30,7 @@ import {connection} from '@/customProviders/aExample';
       provide: CONNECTION,
       useValue: connection,
     },
+    CommonService,
   ],
   exports: [CatsService],
 })

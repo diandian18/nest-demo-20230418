@@ -1,9 +1,9 @@
-import { Controller, Get, MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { Controller, Get, MiddlewareConsumer, Module, NestModule, OnApplicationShutdown, OnModuleInit, RequestMethod } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
 import {APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE} from '@nestjs/core';
 import {CatController} from './cat/cat.controller.temp';
 import { CatModule } from './cat/cat.module';
-import {ConfigModule} from './config/config.module';
+import {ConfigModule as CustomConfigModule} from './config/config.module';
 import {HttpExceptionFilter} from '@/filters/httpException.filter';
 import { logger, LoggerMiddleware } from '@/middlewares/logger.middleware';
 import {ValidationPipe} from '@/pipes/validation.pipe';
@@ -21,6 +21,9 @@ import {TimeoutInterceptor} from '@/interceptors/timeout.interceptor';
 import {connection} from '@/customProviders/aExample';
 import {CONNECTION} from '@/consts/customProvider';
 import {ConfigService} from './config/config.service';
+import {ConfigModule} from '@nestjs/config';
+import {TypeOrmModule} from '@nestjs/typeorm';
+import {User} from './user/user.entity';
 
 @Controller('/')
 export class AppController {
@@ -35,10 +38,15 @@ export class AppController {
   imports: [ 
     CatModule,
     UserModule,
-    ConfigModule.register({
+    // 自定义的ConfigModule
+    CustomConfigModule.register({
       folder: './config',
       isGlobal: true, // isGlobal不会被@Inject
     }), 
+    // ConfigModule.forRoot({
+    //   envFilePath: ''
+    // }),
+    // 内置ConfigModule
     // ConfigModule.customFuncName({ folder: './config' }), 
     /*ConfigModule.registerAsync({
       // ????
@@ -60,6 +68,39 @@ export class AppController {
     //   host: '127.0.0.1',
     //   port: 6379,
     // }),
+
+    // mysql DataSource和EntityManager可在整个项目注入
+    // TypeOrmModule.forRoot({
+    //   type: 'mysql',
+    //   host: 'localhost',
+    //   port: 3306,
+    //   username: 'root',
+    //   password: '',
+    //   database: 'test_nest',
+    //   // entities: [
+    //   //   User,
+    //   // ],
+    //   autoLoadEntities: true, // 指定该选项后，通过 forFeature() 方法注册的每个实体都将自动添加到配置对象的实体数组中，就不用写上面的entities了
+    //   synchronize: true,
+    // }),
+
+    // 使用config配置
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          type: 'mysql',
+          host: configService.get('MYSQL_HOST'),
+          port: +configService.get('MYSQL_PORT'),
+          username: configService.get('MYSQL_USERNAME'),
+          password: configService.get('MYSQL_PASSWORD'),
+          database: configService.get('MYSQL_DATABASE'),
+          autoLoadEntities: true,
+          synchronize: true,
+        };
+      }
+    }),
   ],
   providers: [
     {
@@ -121,10 +162,17 @@ export class AppController {
       useExisting: LoggerService,
     }
     @Moudle({providers: [LoggerService, LoggerAliasProvider]})*/
+
+    // 自定义provider 指定scope
+    /*{
+      provide: 'CACHE_MANAGER',
+      useClass: CacheManager,
+      scope: Scope.TRANSIENT,
+    },*/
   ],
   controllers: [AppController],
 })
-export class AppModule implements NestModule {
+export class AppModule implements NestModule, OnModuleInit, OnApplicationShutdown {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(
@@ -138,6 +186,11 @@ export class AppModule implements NestModule {
       )
       .forRoutes(CatController);
   }
-
+  onModuleInit() {
+    console.log('[AppModule] onModuleInit has been called.'); 
+  }
+  onApplicationShutdown(signal?: string) {
+    console.log('[AppModule] onApplicationnShutdown - signal: ', signal);
+  }
 }
 
