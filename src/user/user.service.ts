@@ -48,13 +48,13 @@ export class UserService {
     return users; 
   }
 
-  findOne(id: number) {
+  async findOne(userId: number) {
     // typeorm版本
     // return this.userRepository.findOneBy({ id });
     // sequelize版本
-    return this.userModel.findOne({
+    return await this.userModel.findOne({
       where: {
-        id,
+        userId,
       },
     });
   }

@@ -1,7 +1,7 @@
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
 import {BusinessException} from '@/common/utils/businessException';
 import genResponse from '@/common/utils/genResponse';
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import {plainToInstance} from 'class-transformer';
 import {LoginDto, registerDto, UserDto} from './user.dto';
 import {User} from './user.model';
@@ -16,9 +16,9 @@ export class UserController {
     return await this.userService.findAll();
   }
 
-  @Get('findOne')
-  async findOne() {
-
+  @Get('findOne/:userId')
+  async findOne(@Param('userId') userId: number) {
+    return await this.userService.findOne(userId);
   }
 
   @Post('createMany')

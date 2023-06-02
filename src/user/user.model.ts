@@ -1,9 +1,13 @@
 // import {Model} from '@/common/Model';
-import {BaseModel} from '@/common/sequelize';
-import {Model, BelongsTo, Column, DefaultScope, ForeignKey, HasMany, Table, CreatedAt, UpdatedAt} from "sequelize-typescript";
+import {BaseModel, mergeExcludeFields} from '@/common/sequelize';
+import {Model, BelongsTo, Column, DefaultScope, ForeignKey, HasMany, Table} from "sequelize-typescript";
 
 @DefaultScope(() => ({
-  attributes: { exclude: ['password'/*, 'createdAt', 'updatedAt'*/] },
+  attributes: {
+    exclude: mergeExcludeFields(['password']),
+    // include 比 exclude 的优先级更高
+    // include: ['password'],
+  },
 }))
 @Table({
   tableName: 'user',
@@ -30,7 +34,7 @@ export class User extends BaseModel {
 }
 
 @DefaultScope(() => ({
-  attributes: { exclude: ['userId'] },
+  attributes: { exclude: mergeExcludeFields(['userId']) },
 }))
 @Table({
   tableName: 'photo',

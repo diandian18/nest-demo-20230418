@@ -16,3 +16,11 @@ export class BaseModel extends Model {
   updatedTime: Date;
 }
 
+export function mergeExcludeFields(excludeFileds: string[]) {
+  const baseExcludeFields = ['creatorId', 'createdTime', 'updaterId', 'updatedTime'];
+  return [
+    ...excludeFileds,
+    ...baseExcludeFields,
+  ];
+}
+
