@@ -1,15 +1,15 @@
 // import {Model} from '@/common/Model';
-import {Model, BelongsTo, Column, DefaultScope, ForeignKey, HasMany, Table} from "sequelize-typescript";
+import {BaseModel} from '@/common/sequelize';
+import {Model, BelongsTo, Column, DefaultScope, ForeignKey, HasMany, Table, CreatedAt, UpdatedAt} from "sequelize-typescript";
 
 @DefaultScope(() => ({
-  attributes: { exclude: ['password'] },
+  attributes: { exclude: ['password'/*, 'createdAt', 'updatedAt'*/] },
 }))
 @Table({
   tableName: 'user',
-  timestamps: false,
+  // timestamps: false,
 })
-export class User extends Model {
-  // @PrimaryKey
+export class User extends BaseModel {
   @Column({ primaryKey: true })
   userId: number;
 
@@ -22,11 +22,11 @@ export class User extends Model {
   @Column({ defaultValue: true })
   isActive: boolean;
 
-  @HasMany(() => Photo)
-  photos: Photo[];
-
   @Column
   password: string;
+
+  @HasMany(() => Photo)
+  photos: Photo[];
 }
 
 @DefaultScope(() => ({
@@ -34,10 +34,9 @@ export class User extends Model {
 }))
 @Table({
   tableName: 'photo',
-  timestamps: false,
+  // timestamps: false,
 })
-export class Photo extends Model {
-  // @PrimaryKey
+export class Photo extends BaseModel {
   @Column({ primaryKey: true })
   photoId: number;
 
@@ -45,10 +44,10 @@ export class Photo extends Model {
   @ForeignKey(() => User)
   userId: number; // 关联User
 
-  @BelongsTo(() => User)
-  user: User;
-
   @Column
   url: string;
+
+  @BelongsTo(() => User)
+  user: User;
 }
 

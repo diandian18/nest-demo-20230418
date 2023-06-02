@@ -137,6 +137,12 @@ export class UserService {
     }); 
   }
 
+  async updateOne() {
+    await this.userModel.update({
+      lastName: 'xxx', // 测试updated_time被自动更新
+    }, { where: { userId: 28620 } });  
+  }
+
   register(registerDto: registerDto) {
       
   }

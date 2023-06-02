@@ -121,9 +121,14 @@ export class AppController {
           database: configService.get('MYSQL_DATABASE'),
           // models: [],
           autoLoadModels: true,
-          synchronize: true,
+          synchronize: false,
           define: {
             underscored: true, // 全局自动把驼峰转为下划线
+            defaultScope: {
+              attributes: {
+                exclude: ['created_at', 'createdAt', 'updatedAt'],
+              },
+            }, 
           },
         };
       },
