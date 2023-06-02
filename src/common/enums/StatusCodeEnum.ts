@@ -2,6 +2,9 @@ export default class StatusCodeEnum {
 
   static readonly OK = new this('200', 'SUCCESS')
   static readonly CREATED = new this('201', '成功，已创建该资源')
+
+  static readonly PASS_WRONG = new this('100088', '帐号或密码有误')
+
   static readonly UNAUTHORIZED = new this('401', '登录状态失效，请重新登录')
   static readonly JWT_TOKEN_IS_FORBIDDEN = new this('100048', '您无权限进入')
   static readonly FORBIDDEN_ENTER = new this('100043', '禁止进入')

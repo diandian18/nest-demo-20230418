@@ -1,10 +1,9 @@
-// import {Model} from '@/common/Model';
 import {BaseModel, mergeExcludeFields} from '@/common/sequelize';
-import {Model, BelongsTo, Column, DefaultScope, ForeignKey, HasMany, Table} from "sequelize-typescript";
+import {BelongsTo, Column, DefaultScope, ForeignKey, HasMany, Table} from "sequelize-typescript";
 
 @DefaultScope(() => ({
   attributes: {
-    exclude: mergeExcludeFields(['password']),
+    exclude: mergeExcludeFields([/* 'userPassword' */]),
     // include 比 exclude 的优先级更高
     // include: ['password'],
   },
@@ -18,19 +17,16 @@ export class User extends BaseModel {
   userId: number;
 
   @Column
-  firstName: string;
+  userAccount: string;
 
   @Column
-  lastName: string;
+  userPassword: string;
 
   @Column({ defaultValue: true })
   isActive: boolean;
 
-  @Column
-  password: string;
-
   @HasMany(() => Photo)
-  photos: Photo[];
+  photo: Photo[];
 }
 
 @DefaultScope(() => ({
@@ -45,11 +41,33 @@ export class Photo extends BaseModel {
   photoId: number;
 
   @Column
-  @ForeignKey(() => User)
-  userId: number; // 关联User
+  url: string;
 
   @Column
-  url: string;
+  @ForeignKey(() => User)
+  userId: number; // 关联User表
+
+  @BelongsTo(() => User)
+  user: User;
+}
+
+@DefaultScope(() => ({
+  attributes: { exclude: mergeExcludeFields(['userId']) },
+}))
+@Table({
+  tableName: 'user_info',
+  // timestamps: false,
+})
+export class UserInfo extends BaseModel {
+  @Column({ primaryKey: true })
+  userInfoId: number;
+
+  @Column
+  nickname: string;
+
+  @Column
+  @ForeignKey(() => User)
+  userId: number; // 关联User表
 
   @BelongsTo(() => User)
   user: User;

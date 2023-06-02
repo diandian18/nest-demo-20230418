@@ -27,7 +27,6 @@ import {SequelizeModule} from '@nestjs/sequelize';
 import { HttpModule } from '@/http/http.module';
 import {WinstonModule} from 'nest-winston';
 import {AllExceptionsFilter} from './common/filters/allExceptions.filter';
-import { AuthModule } from './auth/auth.module';
 import {ResponseInterceptor} from './common/interceptors/response.interceptor';
 
 @Controller('/')
@@ -148,8 +147,6 @@ export class AppController {
 
     // axios
     HttpModule,
-
-    AuthModule,
   ],
   providers: [
     {

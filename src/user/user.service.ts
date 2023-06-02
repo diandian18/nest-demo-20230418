@@ -1,3 +1,7 @@
+import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
+import {BusinessException} from '@/common/utils/businessException';
+import genResponse from '@/common/utils/genResponse';
+import {genRandomNumber} from '@/common/utils/string';
 import {HttpService} from '@nestjs/axios';
 import { Injectable, Scope } from '@nestjs/common';
 import {InjectModel} from '@nestjs/sequelize';
@@ -5,7 +9,7 @@ import {Sequelize} from 'sequelize-typescript';
 // import {InjectRepository} from '@nestjs/typeorm';
 // import {DataSource, Repository} from 'typeorm';
 import {RedisService} from '../redis/redis.service';
-import {LoginDto, registerDto, UserDto} from './user.dto';
+import {LoginDto, RegisterDto, UserDto} from './user.dto';
 import {Photo, User} from './user.model';
 // import {User} from './user.entity';
 
@@ -52,11 +56,12 @@ export class UserService {
     // typeorm版本
     // return this.userRepository.findOneBy({ id });
     // sequelize版本
-    return await this.userModel.findOne({
+    const user = await this.userModel.findOne({
       where: {
         userId,
       },
     });
+    return user;
   }
 
   async remove(id: number) {
@@ -117,45 +122,54 @@ export class UserService {
 
       for (let i = 0; i < users.length; i++) {
         const user = users[i];
-        const userId = parseInt((Math.random() * 100000).toFixed(0));
+        const userId = genRandomNumber();
         const toSavePhotos = user.photos.map(photo => ({
-          photoId: parseInt((Math.random() * 100000).toFixed(0)),
+          photoId: genRandomNumber(),
           userId,
           url: photo.url,
         }));
         const toSaveUsers = {
           userId,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          password: user.password,
+          userAccount: user.userAccount,
+          userPassword: user.userPassword,
           isActive: true,
         };
-        console.log('toSaveUsers: ', toSaveUsers);
+        console.log(toSaveUsers);
+        console.log(toSavePhotos);
         await this.userModel.create(toSaveUsers, transactionOpt);
         await this.photoModel.bulkCreate(toSavePhotos, transactionOpt)
       } 
     }); 
   }
 
-  async updateOne() {
+  async updateOne(userId: number) {
     await this.userModel.update({
-      lastName: 'xxx', // 测试updated_time被自动更新
-    }, { where: { userId: 28620 } });  
+      username: 'xxx', // 测试updated_time被自动更新
+    }, { where: { userId } });  
   }
 
-  register(registerDto: registerDto) {
-      
+  async register(registerDto: RegisterDto) {
+    const { userAccount, userPassword } = registerDto;
+    const userId = genRandomNumber();
+    const toSaveUser = {
+      userId,
+      userAccount,
+      userPassword,
+      isActive: true,
+    };
+    await this.userModel.create(toSaveUser);
   }
 
-  async login(reqBody: LoginDto) {
-    const { userAccount, userPassword } = reqBody;
-    const token = this.genToken(userAccount, userPassword); 
-    // @ts-ignore
-    await this.redisService.cache.set(token, 1, { ttl: 2 * 60 * 60 });
-  }
-
-  genToken(userAccount: string, userPassword: string) {
-    return `${userAccount}-${userPassword}`;
+  async login({ userAccount, userPassword }) {
+    const user = await this.userModel.findOne({
+      where: {
+        userAccount,
+      },
+    });
+    if (userPassword === user.dataValues?.userPassword) {
+      return user; 
+    }
+    throw new BusinessException(genResponse.fail(StatusCodeEnum.PASS_WRONG));
   }
 }
 

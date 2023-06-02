@@ -7,21 +7,18 @@ export class PhotoDto {
 
 export class UserDto {
   @IsString()
-  firstName: string;
+  userAccount: string;
   @IsString()
-  lastName: string;
+  userPassword: string;
   @IsArray()
   photos: PhotoDto[];
-  @IsNumber()
-  password: string;
 }
 
-export class registerDto {
+export class RegisterDto {
   @IsString()
   userAccount: string;
   @IsString()
   userPassword: string;
-  userRePassword: string;
 }
 
 export class LoginDto {
