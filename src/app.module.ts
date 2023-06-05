@@ -28,6 +28,7 @@ import { HttpModule } from '@/http/http.module';
 import {WinstonModule} from 'nest-winston';
 import {AllExceptionsFilter} from './common/filters/allExceptions.filter';
 import {ResponseInterceptor} from './common/interceptors/response.interceptor';
+import {JwtModule} from '@nestjs/jwt';
 
 @Controller('/')
 export class AppController {
@@ -147,6 +148,19 @@ export class AppController {
 
     // axios
     HttpModule,
+
+    // jwt
+    JwtModule.registerAsync({
+      global: true,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          // global: true,
+          secret: configService.get('JWT_SECRET'),
+          signOptions: {expiresIn: '60s'},
+        };
+      },
+    }),
   ],
   providers: [
     {

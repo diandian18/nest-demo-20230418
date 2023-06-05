@@ -1,16 +1,18 @@
-import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
-import {BusinessException} from '@/common/utils/businessException';
-import genResponse from '@/common/utils/genResponse';
+// import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
+// import {BusinessException} from '@/common/utils/businessException';
+// import genResponse from '@/common/utils/genResponse';
+import { Permissions } from '@/common/guards/permission.decorator';
 import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
-import {plainToInstance} from 'class-transformer';
-import {LoginDto, RegisterDto, UserDto} from './user.dto';
-import {User} from './user.model';
-import {UserService} from './user.service';
+// import {plainToInstance} from 'class-transformer';
+import { PostLoginReqDto, PostRegisterReqDto, UserDto } from './user.dto';
+// import {User} from './user.model';
+import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
 
+  @Permissions()
   @Get('findAll')
   async findAll() {
     return await this.userService.findAll();
@@ -34,26 +36,25 @@ export class UserController {
   }
 
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    await this.userService.register(registerDto); 
+  async postRegister(@Body() registerDto: PostRegisterReqDto) {
+    await this.userService.postRegister(registerDto);
     // 不需要return
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    return await this.userService.login(loginDto);
+  async postLogin(@Body() loginDto: PostLoginReqDto) {
+    return await this.userService.postLogin(loginDto);
   }
 
-  // async login(loginDto: LoginDto) {
+  // async login(loginDto: PostLoginReqDto) {
   //   const {username, password} = loginDto;
   //   const user = await this.userService.findOne(userId)
-  //   // const token = this.genToken(username, password); 
+  //   // const token = this.genToken(username, password);
   //   // @ts-ignore
   //   // await this.redisService.cache.set(token, 1, { ttl: 2 * 60 * 60 });
   // }
 
-  genToken(userAccount: string, userPassword: string) {
-    return `${userAccount}-${userPassword}`;
-  }
+  // genToken(userAccount: string, userPassword: string) {
+  //   return `${userAccount}-${userPassword}`;
+  // }
 }
-

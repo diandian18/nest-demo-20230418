@@ -30,7 +30,7 @@ export class User extends BaseModel {
 }
 
 @DefaultScope(() => ({
-  attributes: { exclude: mergeExcludeFields(['userId']) },
+  attributes: { exclude: mergeExcludeFields([/* 'userId' */]) },
 }))
 @Table({
   tableName: 'photo',

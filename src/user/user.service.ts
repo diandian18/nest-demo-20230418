@@ -1,16 +1,24 @@
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
-import {BusinessException} from '@/common/utils/businessException';
+import { BusinessException } from '@/common/utils/businessException';
 import genResponse from '@/common/utils/genResponse';
-import {genRandomNumber} from '@/common/utils/string';
-import {HttpService} from '@nestjs/axios';
+import { genRandomNumber } from '@/common/utils/string';
+import { HttpService } from '@nestjs/axios';
 import { Injectable, Scope } from '@nestjs/common';
-import {InjectModel} from '@nestjs/sequelize';
-import {Sequelize} from 'sequelize-typescript';
+import { JwtService } from '@nestjs/jwt';
+import { InjectModel } from '@nestjs/sequelize';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+import { Sequelize } from 'sequelize-typescript';
 // import {InjectRepository} from '@nestjs/typeorm';
 // import {DataSource, Repository} from 'typeorm';
-import {RedisService} from '../redis/redis.service';
-import {LoginDto, RegisterDto, UserDto} from './user.dto';
-import {Photo, User} from './user.model';
+import { RedisService } from '../redis/redis.service';
+import {
+  PostLoginReqDto,
+  PostLoginRetDto,
+  PostRegisterReqDto,
+  UserDto,
+} from './user.dto';
+import { Photo, User } from './user.model';
 // import {User} from './user.entity';
 
 @Injectable({ scope: Scope.REQUEST })
@@ -33,6 +41,9 @@ export class UserService {
     @InjectModel(Photo)
     private photoModel: typeof Photo,
     private sequelize: Sequelize,
+
+    // jwt
+    private jwtService: JwtService,
   ) {}
 
   async findAll() {
@@ -40,16 +51,16 @@ export class UserService {
     // return this.userRepository.find();
     // sequelize版本
     const users = await this.userModel.findAll({
-      include: [{model: Photo}],
+      include: [{ model: Photo }],
       // attributes: {
       //   exclude: ['password'],
       // },
     });
     // await this.httpService.axiosRef.get<{a: string}>('http://localhost:3000/cat');
-    // @ts-ignore
+    // // @ts-ignore
     // xx.a();
     // ：
-    return users; 
+    return users;
   }
 
   async findOne(userId: number) {
@@ -117,13 +128,13 @@ export class UserService {
   // }
 
   async createMany(users: UserDto[]) {
-    await this.sequelize.transaction(async transaction => {
+    await this.sequelize.transaction(async (transaction) => {
       const transactionOpt = { transaction };
 
       for (let i = 0; i < users.length; i++) {
         const user = users[i];
         const userId = genRandomNumber();
-        const toSavePhotos = user.photos.map(photo => ({
+        const toSavePhotos = user.photos.map((photo) => ({
           photoId: genRandomNumber(),
           userId,
           url: photo.url,
@@ -137,18 +148,21 @@ export class UserService {
         console.log(toSaveUsers);
         console.log(toSavePhotos);
         await this.userModel.create(toSaveUsers, transactionOpt);
-        await this.photoModel.bulkCreate(toSavePhotos, transactionOpt)
-      } 
-    }); 
+        await this.photoModel.bulkCreate(toSavePhotos, transactionOpt);
+      }
+    });
   }
 
   async updateOne(userId: number) {
-    await this.userModel.update({
-      username: 'xxx', // 测试updated_time被自动更新
-    }, { where: { userId } });  
+    await this.userModel.update(
+      {
+        username: 'xxx', // 测试updated_time被自动更新
+      },
+      { where: { userId } },
+    );
   }
 
-  async register(registerDto: RegisterDto) {
+  async postRegister(registerDto: PostRegisterReqDto) {
     const { userAccount, userPassword } = registerDto;
     const userId = genRandomNumber();
     const toSaveUser = {
@@ -160,16 +174,31 @@ export class UserService {
     await this.userModel.create(toSaveUser);
   }
 
-  async login({ userAccount, userPassword }) {
+  async postLogin(loginDto: PostLoginReqDto) {
+    const { userAccount, userPassword } = loginDto;
     const user = await this.userModel.findOne({
       where: {
         userAccount,
       },
     });
-    if (userPassword === user.dataValues?.userPassword) {
-      return user; 
+
+    if (userPassword !== user.dataValues?.userPassword) {
+      throw new BusinessException(genResponse.fail(StatusCodeEnum.PASS_WRONG));
     }
-    throw new BusinessException(genResponse.fail(StatusCodeEnum.PASS_WRONG));
+
+    const jwtPayload = { userId: user.userId, userAccount: user.userAccount };
+    const accessToken = await this.jwtService.signAsync(jwtPayload);
+
+    // 根据PostLoginRetDto的定义，使用plainToInstance得到要返回的值 (这里排除了userPassword isActive等字段)
+    const retUser = plainToInstance(PostLoginRetDto, {
+      ...user.dataValues,
+      accessToken,
+    });
+
+    // 可以校验
+    // const errors = await validate(retUser);
+    // console.log(errors);
+
+    return retUser;
   }
 }
-
