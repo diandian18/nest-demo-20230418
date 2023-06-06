@@ -1,21 +1,21 @@
-import {CacheModule} from '@nestjs/cache-manager';
+import { CacheModule } from '@nestjs/cache-manager';
 import { Global, Module } from '@nestjs/common';
-import {redisStore} from 'cache-manager-redis-store';
-import {ConfigModule} from '../config/config.module';
+import { redisStore } from 'cache-manager-redis-store';
 import { RedisService } from './redis.service';
-import {RedisClientOptions} from 'redis';
+import { RedisClientOptions } from 'redis';
+import { ConfigService } from '@/config/config.service';
 
 @Global()
 @Module({
   imports: [
     CacheModule.registerAsync<RedisClientOptions>({
       // imports: [ConfigModule],
-      // inject: [ConfigModule],
+      inject: [ConfigService],
       // @ts-ignore
-      useFactory: async() => ({
+      useFactory: async (configService: ConfigService) => ({
         store: await redisStore({
-          url: 'redis://127.0.0.1:6379',
-          ttl: 60,
+          url: configService.get('REDIS_URL'),
+          ttl: +configService.get('REDIS_TTL'),
         }),
         // store: redisStore,
       }),

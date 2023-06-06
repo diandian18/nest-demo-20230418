@@ -12,3 +12,6 @@
 
 当Nest的IoC容器实例化`CatsController`时，它首先会寻找是否有任何依赖项[*]。当它找到了`CatsService`依赖，就会按照上面注册的步骤#3对返回`CatsService`类的标识`CatsService`进行查找。假设单例作用域（默认行为），Nest将创建一个`CatsService`的实例，缓存并返回它，或者已经有缓存时直接返回存在的实例。
 
+## todo
+
+1. 将auth和permission独立出来，在网关层处理

@@ -1,13 +1,15 @@
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
+import { JwtPayload } from '@/common/types/auth.type';
+import { genJwtRedisKey } from '@/common/utils/auth.util';
 import { BusinessException } from '@/common/utils/businessException';
 import genResponse from '@/common/utils/genResponse';
 import { genRandomNumber } from '@/common/utils/string';
+import { ConfigService } from '@/config/config.service';
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Scope } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
 import { Sequelize } from 'sequelize-typescript';
 // import {InjectRepository} from '@nestjs/typeorm';
 // import {DataSource, Repository} from 'typeorm';
@@ -44,6 +46,8 @@ export class UserService {
 
     // jwt
     private jwtService: JwtService,
+
+    private configService: ConfigService,
   ) {}
 
   async findAll() {
@@ -186,8 +190,16 @@ export class UserService {
       throw new BusinessException(genResponse.fail(StatusCodeEnum.PASS_WRONG));
     }
 
-    const jwtPayload = { userId: user.userId, userAccount: user.userAccount };
+    // 生成jwt
+    const jwtPayload: JwtPayload = { userId: user.userId };
     const accessToken = await this.jwtService.signAsync(jwtPayload);
+
+    // accessToken保存在redis
+    this.redisService.cache.set(
+      genJwtRedisKey(accessToken),
+      user.userId,
+      +this.configService.get('JWT_TTL'),
+    );
 
     // 根据PostLoginRetDto的定义，使用plainToInstance得到要返回的值 (这里排除了userPassword isActive等字段)
     const retUser = plainToInstance(PostLoginRetDto, {

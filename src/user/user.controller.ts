@@ -1,18 +1,13 @@
-// import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
-// import {BusinessException} from '@/common/utils/businessException';
-// import genResponse from '@/common/utils/genResponse';
-import { Permissions } from '@/common/guards/permission.decorator';
+import { Public } from '@/common/decorators/auth.decorator';
 import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
-// import {plainToInstance} from 'class-transformer';
 import { PostLoginReqDto, PostRegisterReqDto, UserDto } from './user.dto';
-// import {User} from './user.model';
 import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
 
-  @Permissions()
+  // @Permissions()
   @Get('findAll')
   async findAll() {
     return await this.userService.findAll();
@@ -36,25 +31,15 @@ export class UserController {
   }
 
   @Post('register')
+  @Public()
   async postRegister(@Body() registerDto: PostRegisterReqDto) {
     await this.userService.postRegister(registerDto);
-    // 不需要return
+    // 不需要return，return undifined 就表示200成功
   }
 
   @Post('login')
+  @Public()
   async postLogin(@Body() loginDto: PostLoginReqDto) {
     return await this.userService.postLogin(loginDto);
   }
-
-  // async login(loginDto: PostLoginReqDto) {
-  //   const {username, password} = loginDto;
-  //   const user = await this.userService.findOne(userId)
-  //   // const token = this.genToken(username, password);
-  //   // @ts-ignore
-  //   // await this.redisService.cache.set(token, 1, { ttl: 2 * 60 * 60 });
-  // }
-
-  // genToken(userAccount: string, userPassword: string) {
-  //   return `${userAccount}-${userPassword}`;
-  // }
 }

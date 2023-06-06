@@ -1,7 +1,5 @@
 import {User} from '@/common/decorators/user.decorator';
-import {Permission} from '@/common/enums/permission';
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
-import {Permissions} from '@/common/guards/permission.decorator';
 import {LoggingInterceptor} from '@/common/interceptors/logging.interceptor';
 import JoiValidationPipe from '@/common/pipes/joiValidation.pipe';
 import {ValidationPipe} from '@/common/pipes/validation.pipe';
@@ -15,6 +13,8 @@ import {RedisService} from '@/redis/redis.service';
 import CatsService from './cat.service';
 import {CreateCatDto, createCatSchema} from './dto/create-cat.dto';
 import {Cat} from './interfaces/cat.interface';
+import { Permissions } from '@/common/decorators/permission.decorator';
+import { Permission } from '@/common/enums/permission';
 
 // @Controller({ path: 'cat' })
 // 指定scope
@@ -58,7 +58,7 @@ export class CatController {
   async create(
     // @Body(new ValidationPipe()) createCatDto: CreateCatDto, // ValidationPipe比较通用，可作为全局pipe
     @Body() createCatDto: CreateCatDto,
-  ) { 
+  ) {
     // const sleep = (ms: number) => {
     //   return new Promise(resolve => {
     //     setTimeout(resolve, ms);
@@ -76,10 +76,9 @@ export class CatController {
       //   StatusCodeEnum.FORBIDDEN_ENTER.code,
       //   StatusCodeEnum.FORBIDDEN_ENTER.message,
       // ));
-      throw new BusinessException(genResponse.fail(
-        StatusCodeEnum.FORBIDDEN_ENTER.code,
-        StatusCodeEnum.FORBIDDEN_ENTER.message,
-      ));
+      throw new BusinessException(
+        genResponse.fail(StatusCodeEnum.FORBIDDEN_ENTER),
+      );
     }
   }
 

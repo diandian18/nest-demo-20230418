@@ -29,6 +29,7 @@ import {WinstonModule} from 'nest-winston';
 import {AllExceptionsFilter} from './common/filters/allExceptions.filter';
 import {ResponseInterceptor} from './common/interceptors/response.interceptor';
 import {JwtModule} from '@nestjs/jwt';
+import { AuthGuard } from './common/guards/auth.guard';
 
 @Controller('/')
 export class AppController {
@@ -40,19 +41,19 @@ export class AppController {
 }
 
 @Module({
-  imports: [ 
+  imports: [
     CatModule,
     UserModule,
     // 自定义的ConfigModule
     CustomConfigModule.register({
       folder: './config',
       isGlobal: true, // isGlobal不会被@Inject
-    }), 
+    }),
     // ConfigModule.forRoot({
     //   envFilePath: ''
     // }),
     // 内置ConfigModule
-    // ConfigModule.customFuncName({ folder: './config' }), 
+    // ConfigModule.customFuncName({ folder: './config' }),
     /*ConfigModule.registerAsync({
       // ????
       useClass: ConfigModuleOptionsFactory, // <-- this class must provide the "createConfigOptions" method
@@ -106,7 +107,7 @@ export class AppController {
     //     };
     //   }
     // }),
-    
+ 
     // 设置完后，可以在所有地方注入Sequelize
     SequelizeModule.forRootAsync({
       // imports: [CustomConfigModule],
@@ -128,7 +129,7 @@ export class AppController {
               attributes: {
                 exclude: ['created_at', 'createdAt', 'updatedAt'],
               },
-            }, 
+            },
           },
         };
       },
@@ -155,9 +156,8 @@ export class AppController {
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         return {
-          // global: true,
           secret: configService.get('JWT_SECRET'),
-          signOptions: {expiresIn: '60s'},
+          signOptions: { expiresIn: '7200s' },
         };
       },
     }),
@@ -174,6 +174,10 @@ export class AppController {
     {
       provide: APP_PIPE,
       useClass: ValidationPipe,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
     },
     {
       provide: APP_GUARD,
@@ -206,7 +210,7 @@ export class AppController {
     {
       provide: APP_INTERCEPTOR,
       useClass: TimeoutInterceptor,
-    }, 
+    },
     // Class providers 写法
     /* {
       provide: ConfigService,
