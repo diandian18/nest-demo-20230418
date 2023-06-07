@@ -1,10 +1,6 @@
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
 import { JwtPayload } from '@/common/types/auth.type';
-import {
-  genRedisAccessTokenKey,
-  genRedisAuthUserIdKey,
-  genRedisRefreshTokenKey,
-} from '@/common/utils/auth.util';
+import { genRedisAccessTokenKey, genRedisAuthUserIdKey, genRedisRefreshTokenKey } from '@/common/utils/auth.util';
 import { BusinessException } from '@/common/utils/businessException';
 import genResponse from '@/common/utils/genResponse';
 import { genRandomNumber } from '@/common/utils/string';
@@ -240,7 +236,7 @@ export class UserService {
 
   /**
    * 生成和保存accessToken refreshToken expiration
-   * 如果传递了原refreshToken，则会删除该用户的其他token，即同时只能有一个token，可以做踢人逻辑
+   * replace模式下，会删除该用户的原token，即同时只能有一个token
    */
   private async genToken(
     user: UserDto,
@@ -283,11 +279,19 @@ export class UserService {
       const oldTokenJson = await this.cacheManager.get<string>(
         genRedisAuthUserIdKey(user.userId),
       );
-      const { accessToken: oldAccessToken, refreshToken: oldRefreshToken } = JSON.parse(oldTokenJson ?? null) ?? {};
+      const {
+        accessToken: oldAccessToken,
+        refreshToken: oldRefreshToken
+      } = JSON.parse(oldTokenJson ?? null) ?? {};
+
       if (oldAccessToken && oldRefreshToken) {
         promises.push(
-          this.cacheManager.del(genRedisAccessTokenKey(oldAccessToken)),
-          this.cacheManager.del(genRedisRefreshTokenKey(oldRefreshToken)),
+          this.cacheManager.del(
+            genRedisAccessTokenKey(oldAccessToken)
+          ),
+          this.cacheManager.del(
+            genRedisRefreshTokenKey(oldRefreshToken)
+          ),
         );
       }
       // 更新userId -> token
