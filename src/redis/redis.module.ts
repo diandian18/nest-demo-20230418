@@ -13,11 +13,15 @@ import { ConfigService } from '@/config/config.service';
       inject: [ConfigService],
       // @ts-ignore
       useFactory: async (configService: ConfigService) => ({
-        store: await redisStore({
-          url: configService.get('REDIS_URL'),
-          ttl: +configService.get('REDIS_TTL'),
-        }),
-        // store: redisStore,
+        // store: await redisStore({
+        //   url: configService.get('REDIS_URL'),
+        //   password: configService.get('REDIS_PASS'),
+        //   // ttl: +configService.get('REDIS_TTL'),
+        // }),
+        store: redisStore,
+        url: configService.get('REDIS_URL'),
+        password: configService.get('REDIS_PASS'),
+        // ttl: 3,
       }),
     }),
   ],

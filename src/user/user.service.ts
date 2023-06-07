@@ -186,19 +186,21 @@ export class UserService {
       },
     });
 
-    if (userPassword !== user.dataValues?.userPassword) {
+    if (!user || userPassword !== user.dataValues?.userPassword) {
       throw new BusinessException(genResponse.fail(StatusCodeEnum.PASS_WRONG));
     }
 
     // 生成jwt
     const jwtPayload: JwtPayload = { userId: user.userId };
     const accessToken = await this.jwtService.signAsync(jwtPayload);
+    const redisKey = genJwtRedisKey(accessToken);
 
     // accessToken保存在redis
     this.redisService.cache.set(
-      genJwtRedisKey(accessToken),
+      redisKey,
       user.userId,
-      +this.configService.get('JWT_TTL'),
+      // +this.configService.get('JWT_TTL'),
+      2000,
     );
 
     // 根据PostLoginRetDto的定义，使用plainToInstance得到要返回的值 (这里排除了userPassword isActive等字段)
