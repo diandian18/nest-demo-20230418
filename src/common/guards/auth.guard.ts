@@ -1,18 +1,11 @@
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
 import genResponse from '@/common/utils/genResponse';
-import { ConfigService } from '@/config/config.service';
+// import { ConfigService } from '@/config/config.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 // import { RedisService } from '@/redis/redis.service';
-import {
-  CanActivate,
-  ExecutionContext,
-  Inject,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
+// import { JwtService } from '@nestjs/jwt';
 import { Cache } from 'cache-manager';
 import { NO_AUTH_REQUIRED_KEY } from '../consts/auth.const';
 import { genRedisAccessTokenKey } from '../utils/auth.util';
@@ -21,8 +14,8 @@ import { genRedisAccessTokenKey } from '../utils/auth.util';
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    private jwtService: JwtService,
-    private configService: ConfigService,
+    // private jwtService: JwtService,
+    // private configService: ConfigService,
     private reflector: Reflector,
     private logger: Logger,
     // private redisService: RedisService,

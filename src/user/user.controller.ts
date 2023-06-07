@@ -45,6 +45,6 @@ export class UserController {
 
   @Post('refresh-token')
   async postRefreshToken(@Body('refreshToken') refreshToken: string) {
-    return await this.userService.refreshToken(refreshToken);
+    return await this.userService.postRefreshToken(refreshToken);
   }
 }

@@ -32,6 +32,7 @@ import {AllExceptionsFilter} from './common/filters/allExceptions.filter';
 import {ResponseInterceptor} from './common/interceptors/response.interceptor';
 import {JwtModule} from '@nestjs/jwt';
 import { AuthGuard } from './common/guards/auth.guard';
+import { AuthModule } from './auth/auth.module';
 
 @Controller('/')
 export class AppController {
@@ -179,6 +180,8 @@ export class AppController {
         };
       },
     }),
+
+    AuthModule,
   ],
   providers: [
     {
