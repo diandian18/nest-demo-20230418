@@ -1,18 +1,36 @@
-import {User} from '@/common/decorators/user.decorator';
+import { User } from '@/common/decorators/user.decorator';
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
-import {LoggingInterceptor} from '@/common/interceptors/logging.interceptor';
+import { LoggingInterceptor } from '@/common/interceptors/logging.interceptor';
 import JoiValidationPipe from '@/common/pipes/joiValidation.pipe';
-import {ValidationPipe} from '@/common/pipes/validation.pipe';
-import {BusinessException} from '@/common/utils/businessException';
+import { ValidationPipe } from '@/common/pipes/validation.pipe';
+import { BusinessException } from '@/common/utils/businessException';
 import genResponse from '@/common/utils/genResponse';
-import {CACHE_MANAGER} from '@nestjs/cache-manager';
-import { Body, Controller, ForbiddenException, Get, HttpException, HttpStatus, Inject, Param, ParseIntPipe, ParseUUIDPipe, Post, Query, Scope, SetMetadata, UseFilters, UseGuards, UseInterceptors, UsePipes } from '@nestjs/common';
-import {Cache} from 'cache-manager';
-import {RedisService} from '@/redis/redis.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  Scope,
+  SetMetadata,
+  UseFilters,
+  UseGuards,
+  UseInterceptors,
+  UsePipes,
+} from '@nestjs/common';
+import { Cache } from 'cache-manager';
 // import {HttpExceptionFilter} from '@/filters/httpException.filter';
 import CatsService from './cat.service';
-import {CreateCatDto, createCatSchema} from './dto/create-cat.dto';
-import {Cat} from './interfaces/cat.interface';
+import { CreateCatDto, createCatSchema } from './dto/create-cat.dto';
+import { Cat } from './interfaces/cat.interface';
 import { Permissions } from '@/common/decorators/permission.decorator';
 import { Permission } from '@/common/enums/permission';
 
@@ -48,7 +66,8 @@ export class CatController {
   constructor(
     /** @Inject(CACHE_MANAGER) private cacheManager: Cache, */
     private catsService: CatsService,
-    private redisService: RedisService,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
 
   @Post()
@@ -101,24 +120,28 @@ export class CatController {
   @Post('/testRedis')
   testRedis(@Body() testRedisBody: Record<string, string>) {
     try {
-      Object.keys(testRedisBody).forEach(async key => {
+      Object.keys(testRedisBody).forEach(async (key) => {
         // @ts-ignore // ts草泥马
-        await this.redisService.cache.set(key, testRedisBody[key], { ttl: 300 });
+        await this.cacheManager.set(key, testRedisBody[key], { ttl: 300 });
       });
       return genResponse.success();
     } catch (err) {
-      throw new BusinessException(genResponse.fail(StatusCodeEnum.UNKNOWN_ERROR));
+      throw new BusinessException(
+        genResponse.fail(StatusCodeEnum.UNKNOWN_ERROR),
+      );
     }
   }
 
   @Get('/testRedis')
   async testGetRedis(@Query('key') key: string) {
     try {
-      const value = await this.redisService.cache.get(key);
+      const value = await this.cacheManager.get(key);
       return genResponse.success(value);
     } catch (err) {
       console.log(err);
-      throw new BusinessException(genResponse.fail(StatusCodeEnum.UNKNOWN_ERROR)); 
+      throw new BusinessException(
+        genResponse.fail(StatusCodeEnum.UNKNOWN_ERROR),
+      );
     }
   }
 
@@ -129,4 +152,3 @@ export class CatController {
     console.log('firstName: ', firstName);
   }
 }
-

@@ -6,7 +6,7 @@ export class PhotoDto {
   url: string;
 }
 
-export class UserDto {
+export class UserDto2 {
   @IsString()
   userAccount: string;
   @IsString()
@@ -29,17 +29,24 @@ export class PostLoginReqDto {
   userPassword: string;
 }
 
+@Exclude()
+export class UserDto {
+  @Expose()
+  userAccount: string;
+  @Expose()
+  userId: number;
+}
+
 /**
  * login接口的返回dto
  * @Exclude()在顶部意味着会排除没有@Expose()装饰的所有字段
  */
 @Exclude()
-export class PostLoginRetDto {
+export class PostLoginRetDto extends UserDto {
   @Expose()
-  userAccount: string;
-  @Expose()
-  userId: number;
-  @Expose()
-  @IsNumber()
   accessToken: string;
+  @Expose()
+  refreshToken: string;
+  @Expose()
+  expiration: number;
 }

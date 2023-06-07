@@ -1,9 +1,6 @@
 import { forwardRef, Global, Module } from '@nestjs/common';
 import CatsService from './cat.service';
 import { CatController } from './cat.controller';
-import {CacheModule} from '@nestjs/cache-manager';
-import {redisStore} from 'cache-manager-redis-store';
-import {RedisClientOptions} from 'redis';
 import {CONNECTION} from '@/common/consts/customProvider';
 import {connection} from '@/common/customProviders/aExample';
 import {CommonModule} from '@/common2/common.module';
@@ -11,13 +8,6 @@ import {CommonService} from '@/common2/common.service';
 
 // @Global()
 @Module({
-  // imports: [
-  //   CacheModule.register<RedisClientOptions>({
-  //     store: redisStore,
-  //     host: '127.0.0.1',
-  //     port: 6379,
-  //   }),
-  // ],
   // imports: [
   //   forwardRef(() => CommonModule),
   // ],

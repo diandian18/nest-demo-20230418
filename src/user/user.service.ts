@@ -1,23 +1,30 @@
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
 import { JwtPayload } from '@/common/types/auth.type';
-import { genJwtRedisKey } from '@/common/utils/auth.util';
+import {
+  genRedisAccessTokenKey,
+  genRedisAuthUserIdKey,
+  genRedisRefreshTokenKey,
+} from '@/common/utils/auth.util';
 import { BusinessException } from '@/common/utils/businessException';
 import genResponse from '@/common/utils/genResponse';
 import { genRandomNumber } from '@/common/utils/string';
 import { ConfigService } from '@/config/config.service';
-import { HttpService } from '@nestjs/axios';
-import { Injectable, Scope } from '@nestjs/common';
+// import { HttpService } from '@nestjs/axios';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, Scope } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
+import { Cache } from 'cache-manager';
 import { plainToInstance } from 'class-transformer';
 import { Sequelize } from 'sequelize-typescript';
 // import {InjectRepository} from '@nestjs/typeorm';
 // import {DataSource, Repository} from 'typeorm';
-import { RedisService } from '../redis/redis.service';
+// import { RedisService } from '../redis/redis.service';
 import {
   PostLoginReqDto,
   PostLoginRetDto,
   PostRegisterReqDto,
+  UserDto2,
   UserDto,
 } from './user.dto';
 import { Photo, User } from './user.model';
@@ -27,10 +34,13 @@ import { Photo, User } from './user.model';
 export class UserService {
   constructor(
     // redis
-    private redisService: RedisService,
+    // private redisService: RedisService,
+
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
 
     // axios
-    private httpService: HttpService,
+    // private httpService: HttpService,
 
     // typeorm版本
     // @InjectRepository(User)
@@ -44,10 +54,10 @@ export class UserService {
     private photoModel: typeof Photo,
     private sequelize: Sequelize,
 
+    private configService: ConfigService,
+
     // jwt
     private jwtService: JwtService,
-
-    private configService: ConfigService,
   ) {}
 
   async findAll() {
@@ -131,7 +141,7 @@ export class UserService {
   //   }
   // }
 
-  async createMany(users: UserDto[]) {
+  async createMany(users: UserDto2[]) {
     await this.sequelize.transaction(async (transaction) => {
       const transactionOpt = { transaction };
 
@@ -186,27 +196,19 @@ export class UserService {
       },
     });
 
+    // 账户不存在或者密码不匹配
     if (!user || userPassword !== user.dataValues?.userPassword) {
       throw new BusinessException(genResponse.fail(StatusCodeEnum.PASS_WRONG));
     }
 
-    // 生成jwt
-    const jwtPayload: JwtPayload = { userId: user.userId };
-    const accessToken = await this.jwtService.signAsync(jwtPayload);
-    const redisKey = genJwtRedisKey(accessToken);
-
-    // accessToken保存在redis
-    this.redisService.cache.set(
-      redisKey,
-      user.userId,
-      // +this.configService.get('JWT_TTL'),
-      2000,
-    );
+    // 生成和保存token
+    const userInfo = plainToInstance(UserDto, user.dataValues);
+    const tokenObj = await this.genToken(userInfo, { replace: false });
 
     // 根据PostLoginRetDto的定义，使用plainToInstance得到要返回的值 (这里排除了userPassword isActive等字段)
     const retUser = plainToInstance(PostLoginRetDto, {
       ...user.dataValues,
-      accessToken,
+      ...tokenObj,
     });
 
     // 可以校验
@@ -214,5 +216,99 @@ export class UserService {
     // console.log(errors);
 
     return retUser;
+  }
+
+  async refreshToken(refreshToken: string) {
+    const redisRefreshTokenKey = genRedisRefreshTokenKey(refreshToken);
+    const redisRefreshTokenPayload = await this.cacheManager.get(redisRefreshTokenKey);
+    const userId = redisRefreshTokenPayload;
+
+    if (!redisRefreshTokenPayload) {
+      throw new BusinessException(
+        genResponse.fail(StatusCodeEnum.REFRESH_TOKEN_EXPIRED),
+      );
+    }
+
+    const userModel = await this.userModel.findOne({
+      where: { userId },
+    });
+    const userDto = plainToInstance(UserDto, userModel);
+
+    // replace模式下，会删除原token
+    return await this.genToken(userDto, { replace: false });
+  }
+
+  /**
+   * 生成和保存accessToken refreshToken expiration
+   * 如果传递了原refreshToken，则会删除该用户的其他token，即同时只能有一个token，可以做踢人逻辑
+   */
+  private async genToken(
+    user: UserDto,
+    opts?: { replace?: boolean; refreshToken?: string },
+  ) {
+    const { replace = false } = opts ?? {};
+    // 生成jwt
+    const jwtPayload: JwtPayload = { ...user, timestamp: Date.now() };
+    const accessToken = await this.jwtService.signAsync(jwtPayload);
+    const refreshToken = await this.jwtService.signAsync({
+      ...jwtPayload,
+      isRefreshToken: true,
+    });
+    const accessTokenTTL = +this.configService.get('JWT_ACCESS_TOKEN_TTL');
+    const refreshTokenTTL = +this.configService.get('JWT_REFRESH_TOKEN_TTL');
+    const expiration = Date.now() + refreshTokenTTL * 1000;
+
+    // 生成redis键值对
+    const redisAccessTokenKey = genRedisAccessTokenKey(accessToken); // key格式: auth:access_token:{accessToken}
+    const redisRefreshTokenKey = genRedisRefreshTokenKey(refreshToken);
+    const redisTokenValue = user.userId;
+
+    // 保存在redis
+    const promises = [
+      this.cacheManager.set(
+        redisAccessTokenKey,
+        redisTokenValue,
+        accessTokenTTL, // 不会生效，似乎是bug
+      ),
+      this.cacheManager.set(
+        redisRefreshTokenKey,
+        redisTokenValue,
+        refreshTokenTTL,
+      ),
+    ];
+
+    // 如果同时只能有一个accessToken
+    if (replace) {
+      // 删除原token -> user
+      const oldTokenJson = await this.cacheManager.get<string>(
+        genRedisAuthUserIdKey(user.userId),
+      );
+      const { accessToken: oldAccessToken, refreshToken: oldRefreshToken } = JSON.parse(oldTokenJson ?? null) ?? {};
+      if (oldAccessToken && oldRefreshToken) {
+        promises.push(
+          this.cacheManager.del(genRedisAccessTokenKey(oldAccessToken)),
+          this.cacheManager.del(genRedisRefreshTokenKey(oldRefreshToken)),
+        );
+      }
+      // 更新userId -> token
+      promises.push(
+        this.cacheManager.set(
+          genRedisAuthUserIdKey(user.userId),
+          JSON.stringify({
+            accessToken,
+            refreshToken,
+          }),
+          accessTokenTTL,
+        ),
+      );
+    }
+
+    await Promise.all(promises);
+
+    return {
+      accessToken,
+      refreshToken,
+      expiration,
+    };
   }
 }

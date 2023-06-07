@@ -1,19 +1,22 @@
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
 import genResponse from '@/common/utils/genResponse';
 import { ConfigService } from '@/config/config.service';
-import { RedisService } from '@/redis/redis.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+// import { RedisService } from '@/redis/redis.service';
 import {
   CanActivate,
   ExecutionContext,
+  Inject,
   Injectable,
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { Cache } from 'cache-manager';
 import { NO_AUTH_REQUIRED_KEY } from '../consts/auth.const';
-import { JwtPayload } from '../types/auth.type';
-import { genJwtRedisKey } from '../utils/auth.util';
+import { genRedisAccessTokenKey } from '../utils/auth.util';
+// import { JwtPayload } from '../types/auth.type';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -22,7 +25,9 @@ export class AuthGuard implements CanActivate {
     private configService: ConfigService,
     private reflector: Reflector,
     private logger: Logger,
-    private redisService: RedisService,
+    // private redisService: RedisService,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -55,8 +60,8 @@ export class AuthGuard implements CanActivate {
       // const { userId } = payload;
 
       // redis: auth:access_token:{accessToken} -> userId
-      const redisAccessTokenPayload = await this.redisService.cache.get<string>(
-        genJwtRedisKey(accessToken),
+      const redisAccessTokenPayload = await this.cacheManager.get<string>(
+        genRedisAccessTokenKey(accessToken),
       );
 
       // redis没token则登录失效

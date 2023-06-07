@@ -1,5 +1,5 @@
 import { Controller, Get, Logger, MiddlewareConsumer, Module, NestModule, OnApplicationShutdown, OnModuleInit, RequestMethod } from '@nestjs/common';
-// import { CacheModule } from '@nestjs/cache-manager';
+import { CacheModule } from '@nestjs/cache-manager';
 import {APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE} from '@nestjs/core';
 import {CatController} from './cat/cat.controller.temp';
 import { CatModule } from './cat/cat.module';
@@ -9,8 +9,10 @@ import {HttpExceptionFilter} from '@/common/filters/httpException.filter';
 import { logger, LoggerMiddleware } from '@/common/middlewares/logger.middleware';
 import {ValidationPipe} from '@/common/pipes/validation.pipe';
 import {PermissionGuard} from '@/common/guards/permission.guard';
-// import {redisStore} from 'cache-manager-redis-store';
-// import { RedisClientOptions } from 'redis';
+import {redisStore} from 'cache-manager-redis-store';
+// import { redisStore } from 'cache-manager-redis-yet';
+// import { redisStore } from 'cache-manager-ioredis-yet';
+import { RedisClientOptions } from 'redis';
 import {RedisModule} from '@/redis/redis.module';
 import {UserModule} from '@/user/user.module';
 import {LoggingInterceptor} from '@/common/interceptors/logging.interceptor';
@@ -67,13 +69,29 @@ export class AppController {
     //   },
     //   inject: [...any extra dependencies],
     // }),
-    RedisModule,
+    // RedisModule,
     // CacheModule.register<RedisClientOptions>({
     //   isGlobal: true,
     //   store: redisStore,
     //   host: '127.0.0.1',
     //   port: 6379,
-    // }),
+    // },
+    CacheModule.registerAsync<RedisClientOptions>({
+      isGlobal: true,
+      inject: [ConfigService],
+      // @ts-ignore
+      useFactory: async (configService: ConfigService) => ({
+        // store: await redisStore({
+        //   url: configService.get('REDIS_URL'),
+        //   password: configService.get('REDIS_PASS'),
+        //   // ttl: +configService.get('REDIS_TTL'),
+        // }),
+        store: redisStore,
+        url: configService.get('REDIS_URL'),
+        password: configService.get('REDIS_PASS'),
+        ttl: 7200,
+      }),
+    }),
 
     // mysql DataSource和EntityManager可在整个项目注入
     // TypeOrmModule.forRoot({
