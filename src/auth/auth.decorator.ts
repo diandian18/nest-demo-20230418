@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { NO_AUTH_REQUIRED_KEY } from '../consts/auth.const';
+import { NO_AUTH_REQUIRED_KEY } from './auth.const';
 
 /**
  * 该接口不需要auth

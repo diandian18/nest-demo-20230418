@@ -1,7 +1,7 @@
-import { JwtPayload } from '@/common/types/auth.type';
-import { genRedisAccessTokenKey, genRedisRefreshTokenKey, genRedisAuthUserIdKey } from '@/common/utils/auth.util';
+import { JwtPayload } from './auth.type';
+import { genRedisAccessTokenKey, genRedisRefreshTokenKey, genRedisAuthUserIdKey } from './auth.util';
 import { ConfigService } from '@/config/config.service';
-import { UserDto } from '@/user/user.dto';
+import { UserRetDto } from '@/user/user.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -15,12 +15,13 @@ export class AuthService {
     private configService: ConfigService,
     private jwtService: JwtService,
   ) {}
+  
   /**
    * 生成和保存accessToken refreshToken expiration
    * replace模式下，会删除该用户的原token，即同时只能有一个token
    */
   async genToken(
-    user: UserDto,
+    user: UserRetDto,
     opts?: { replace?: boolean; refreshToken?: string },
   ) {
     const { replace = false } = opts ?? {};
@@ -38,7 +39,7 @@ export class AuthService {
     // 生成redis键值对
     const redisAccessTokenKey = genRedisAccessTokenKey(accessToken); // key格式: auth:access_token:{accessToken}
     const redisRefreshTokenKey = genRedisRefreshTokenKey(refreshToken);
-    const redisTokenValue = user.userId;
+    const redisTokenValue = JSON.stringify(user);
 
     // 保存在redis
     const promises = [
@@ -95,5 +96,15 @@ export class AuthService {
       refreshToken,
       expiration,
     };
+  }
+
+  /**
+   * 通过refreshToken，在redis找到对应的user信息
+   * 这个前提是已登录的用户在redis存储有: refreshToken -> user信息
+   */
+  async getUserByRefreshTokenInRedis(refreshToken: string): Promise<UserRetDto> {
+    const redisRefreshTokenKey = genRedisRefreshTokenKey(refreshToken);
+    const redisUser = await this.cacheManager.get<string>(redisRefreshTokenKey);
+    return JSON.parse(redisUser ?? null) ?? {};
   }
 }

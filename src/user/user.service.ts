@@ -1,23 +1,15 @@
 import { AuthService } from '@/auth/auth.service';
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
-import { JwtPayload } from '@/common/types/auth.type';
-import { genRedisAccessTokenKey, genRedisAuthUserIdKey, genRedisRefreshTokenKey } from '@/common/utils/auth.util';
 import { BusinessException } from '@/common/utils/businessException';
 import genResponse from '@/common/utils/genResponse';
 import { genRandomNumber } from '@/common/utils/string';
-import { ConfigService } from '@/config/config.service';
-// import { HttpService } from '@nestjs/axios';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, Scope } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { Injectable, Scope } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Cache } from 'cache-manager';
 import { plainToInstance } from 'class-transformer';
 import { Sequelize } from 'sequelize-typescript';
 // import {InjectRepository} from '@nestjs/typeorm';
 // import {DataSource, Repository} from 'typeorm';
-// import { RedisService } from '../redis/redis.service';
-import { PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, UserDto2, UserDto } from './user.dto';
+import { PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, UserDto2, UserRetDto } from './user.dto';
 import { Photo, User } from './user.model';
 // import {User} from './user.entity';
 
@@ -26,9 +18,6 @@ export class UserService {
   constructor(
     // redis
     // private redisService: RedisService,
-
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
 
     // axios
     // private httpService: HttpService,
@@ -189,8 +178,8 @@ export class UserService {
     }
 
     // 生成和保存token
-    const userInfo = plainToInstance(UserDto, user.dataValues);
-    const tokenObj = await this.authService.genToken(userInfo, { replace: false });
+    const userDto = plainToInstance(UserRetDto, user.dataValues);
+    const tokenObj = await this.authService.genToken(userDto, { replace: false });
 
     // 根据PostLoginRetDto的定义，使用plainToInstance得到要返回的值 (这里排除了userPassword isActive等字段)
     const retUser = plainToInstance(PostLoginRetDto, {
@@ -206,20 +195,13 @@ export class UserService {
   }
 
   async postRefreshToken(refreshToken: string) {
-    const redisRefreshTokenKey = genRedisRefreshTokenKey(refreshToken);
-    const redisRefreshTokenPayload = await this.cacheManager.get(redisRefreshTokenKey);
-    const userId = redisRefreshTokenPayload;
+    const userDto = await this.authService.getUserByRefreshTokenInRedis(refreshToken);
 
-    if (!redisRefreshTokenPayload) {
+    if (!userDto) {
       throw new BusinessException(
         genResponse.fail(StatusCodeEnum.REFRESH_TOKEN_EXPIRED),
       );
     }
-
-    const userModel = await this.userModel.findOne({
-      where: { userId },
-    });
-    const userDto = plainToInstance(UserDto, userModel);
 
     // replace模式下，会删除原token
     return await this.authService.genToken(userDto, { replace: false });

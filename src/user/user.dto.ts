@@ -29,8 +29,11 @@ export class PostLoginReqDto {
   userPassword: string;
 }
 
+/**
+ * 可暴露的用户信息的返回dto
+ */
 @Exclude()
-export class UserDto {
+export class UserRetDto {
   @Expose()
   userAccount: string;
   @Expose()
@@ -42,7 +45,7 @@ export class UserDto {
  * @Exclude()在顶部意味着会排除没有@Expose()装饰的所有字段
  */
 @Exclude()
-export class PostLoginRetDto extends UserDto {
+export class PostLoginRetDto extends UserRetDto {
   @Expose()
   accessToken: string;
   @Expose()

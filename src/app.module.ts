@@ -31,8 +31,8 @@ import {WinstonModule} from 'nest-winston';
 import {AllExceptionsFilter} from './common/filters/allExceptions.filter';
 import {ResponseInterceptor} from './common/interceptors/response.interceptor';
 import {JwtModule} from '@nestjs/jwt';
-import { AuthGuard } from './common/guards/auth.guard';
-import { AuthModule } from './auth/auth.module';
+import { AuthGuard } from '@/auth/auth.guard';
+import { AuthModule } from '@/auth/auth.module';
 
 @Controller('/')
 export class AppController {

@@ -7,8 +7,8 @@ import { CanActivate, ExecutionContext, Inject, Injectable, Logger, Unauthorized
 import { Reflector } from '@nestjs/core';
 // import { JwtService } from '@nestjs/jwt';
 import { Cache } from 'cache-manager';
-import { NO_AUTH_REQUIRED_KEY } from '../consts/auth.const';
-import { genRedisAccessTokenKey } from '../utils/auth.util';
+import { NO_AUTH_REQUIRED_KEY } from './auth.const';
+import { genRedisAccessTokenKey } from './auth.util';
 // import { JwtPayload } from '../types/auth.type';
 
 @Injectable()
