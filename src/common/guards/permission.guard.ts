@@ -1,12 +1,7 @@
 import { Permission } from '@/common/enums/permission';
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
 import genResponse from '@/common/utils/genResponse';
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PERMISSION_KEY } from '../consts/permission.const';
 
@@ -34,11 +29,5 @@ export class PermissionGuard implements CanActivate {
       );
     }
     return true;
-  }
-
-  private extractTokenFromHeader(request: Request) {
-    // @ts-ignore
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : null;
   }
 }

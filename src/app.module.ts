@@ -33,6 +33,7 @@ import {ResponseInterceptor} from './common/interceptors/response.interceptor';
 import {JwtModule} from '@nestjs/jwt';
 import { AuthGuard } from '@/auth/auth.guard';
 import { AuthModule } from '@/auth/auth.module';
+import { RoleModule } from './role/role.module';
 
 @Controller('/')
 export class AppController {
@@ -182,6 +183,8 @@ export class AppController {
     }),
 
     AuthModule,
+
+    RoleModule,
   ],
   providers: [
     {

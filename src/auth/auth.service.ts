@@ -7,6 +7,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Cache } from 'cache-manager';
 
+/**
+ * 提供了token在redis的增删改查能力
+ */
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,6 +22,12 @@ export class AuthService {
   /**
    * 生成和保存accessToken refreshToken expiration
    * replace模式下，会删除该用户的原token，即同时只能有一个token
+   *
+   * 保存的时候, accessToken和refreshToken分别都存
+   * auth:access_token:${accessToken} -> user 
+   * auth:refresh_token:${refreshToken} -> user
+   * 如果是replace模式，还额外保存:
+   * auth:userId:{userId} -> { accessToken, refreshToken }
    */
   async genToken(
     user: UserRetDto,
@@ -58,13 +67,10 @@ export class AuthService {
     // 如果同时只能有一个accessToken
     if (replace) {
       // 删除原token -> user
-      const oldTokenJson = await this.cacheManager.get<string>(
-        genRedisAuthUserIdKey(user.userId),
-      );
       const {
         accessToken: oldAccessToken,
-        refreshToken: oldRefreshToken
-      } = JSON.parse(oldTokenJson ?? null) ?? {};
+        refreshToken: oldRefreshToken,
+      } = await this.getTokenByUserIdInRedis(user.userId);
 
       if (oldAccessToken && oldRefreshToken) {
         promises.push(
@@ -99,12 +105,45 @@ export class AuthService {
   }
 
   /**
-   * 通过refreshToken，在redis找到对应的user信息
-   * 这个前提是已登录的用户在redis存储有: refreshToken -> user信息
+   * 通过 accessToken 获取 redis 保存的user信息
+   * auth:access_token:${accessToken} -> user
    */
-  async getUserByRefreshTokenInRedis(refreshToken: string): Promise<UserRetDto> {
-    const redisRefreshTokenKey = genRedisRefreshTokenKey(refreshToken);
-    const redisUser = await this.cacheManager.get<string>(redisRefreshTokenKey);
-    return JSON.parse(redisUser ?? null) ?? {};
+  async getUserRetDtoByAccessTokenInRedis(accessToken: string): Promise<UserRetDto> {
+    const userRetDto = await this.cacheManager.get<string>(
+      genRedisAccessTokenKey(accessToken),
+    );
+    return JSON.parse(userRetDto ?? null) ?? {};
+  }
+
+  /**
+   * 通过 refreshToken 获取 redis 保存的user信息
+   * auth:refresh_token:${refreshToken} -> user
+   */
+  async getUserRetDtoByRefreshTokenInRedis(refreshToken: string): Promise<UserRetDto> {
+    const userRetDto = await this.cacheManager.get<string>(
+      genRedisRefreshTokenKey(refreshToken)
+    );
+    return JSON.parse(userRetDto ?? null) ?? {};
+  }
+
+  /**
+   * 通过 userId 获取redis保存的 token 信息
+   * auth:userId:{userId} -> { accessToken, refreshToken }
+   */
+  async getTokenByUserIdInRedis(userId: number): Promise<{
+    accessToken: string;
+    refreshToken: string;
+  }> {
+    const tokenJson = await this.cacheManager.get<string>(
+      genRedisAuthUserIdKey(userId),
+    )
+    const {
+      accessToken = null,
+      refreshToken = null,
+    } = JSON.parse(tokenJson ?? null) ?? {};
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 }

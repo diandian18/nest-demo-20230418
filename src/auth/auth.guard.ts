@@ -1,26 +1,18 @@
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
 import genResponse from '@/common/utils/genResponse';
-// import { ConfigService } from '@/config/config.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-// import { RedisService } from '@/redis/redis.service';
 import { CanActivate, ExecutionContext, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-// import { JwtService } from '@nestjs/jwt';
-import { Cache } from 'cache-manager';
 import { NO_AUTH_REQUIRED_KEY } from './auth.const';
-import { genRedisAccessTokenKey } from './auth.util';
-// import { JwtPayload } from '../types/auth.type';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    // private jwtService: JwtService,
-    // private configService: ConfigService,
     private reflector: Reflector,
     private logger: Logger,
-    // private redisService: RedisService,
     @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
+    private authService: AuthService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -52,13 +44,10 @@ export class AuthGuard implements CanActivate {
       // });
       // const { userId } = payload;
 
-      // redis: auth:access_token:{accessToken} -> userId
-      const redisAccessTokenPayload = await this.cacheManager.get<string>(
-        genRedisAccessTokenKey(accessToken),
-      );
+      const userRetDto = await this.authService.getUserRetDtoByAccessTokenInRedis(accessToken);
 
       // redis没token则登录失效
-      if (!redisAccessTokenPayload) {
+      if (!userRetDto) {
         this.logger.log('redis查无此token，登录失效');
         throw new UnauthorizedException(
           genResponse.fail(StatusCodeEnum.UNAUTHORIZED),
@@ -66,7 +55,7 @@ export class AuthGuard implements CanActivate {
       }
 
       // 放到request里，请求都能拿到user
-      request['user'] = redisAccessTokenPayload;
+      request['user'] = userRetDto;
     } catch (err) {
       this.logger.error(err);
       throw new UnauthorizedException(

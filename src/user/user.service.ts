@@ -195,7 +195,7 @@ export class UserService {
   }
 
   async postRefreshToken(refreshToken: string) {
-    const userDto = await this.authService.getUserByRefreshTokenInRedis(refreshToken);
+    const userDto = await this.authService.getUserRetDtoByRefreshTokenInRedis(refreshToken);
 
     if (!userDto) {
       throw new BusinessException(
