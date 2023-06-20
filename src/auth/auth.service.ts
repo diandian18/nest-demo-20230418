@@ -112,7 +112,7 @@ export class AuthService {
     const userRetDto = await this.cacheManager.get<string>(
       genRedisAccessTokenKey(accessToken),
     );
-    return JSON.parse(userRetDto ?? null) ?? {};
+    return JSON.parse(userRetDto ?? null) ?? null;
   }
 
   /**
@@ -123,7 +123,7 @@ export class AuthService {
     const userRetDto = await this.cacheManager.get<string>(
       genRedisRefreshTokenKey(refreshToken)
     );
-    return JSON.parse(userRetDto ?? null) ?? {};
+    return JSON.parse(userRetDto ?? null) ?? null;
   }
 
   /**

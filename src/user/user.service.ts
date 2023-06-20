@@ -9,7 +9,7 @@ import { plainToInstance } from 'class-transformer';
 import { Sequelize } from 'sequelize-typescript';
 // import {InjectRepository} from '@nestjs/typeorm';
 // import {DataSource, Repository} from 'typeorm';
-import { PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, UserDto2, UserRetDto } from './user.dto';
+import { PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, PutUserReqDto, UserDto2, UserRetDto } from './user.dto';
 import { Photo, User } from './user.model';
 // import {User} from './user.entity';
 
@@ -205,5 +205,41 @@ export class UserService {
 
     // replace模式下，会删除原token
     return await this.authService.genToken(userDto, { replace: false });
+  }
+
+  async putUser(userId: number, user: PutUserReqDto) {
+    const { photos } = user;
+    console.log('photos: ', photos);
+
+    await this.sequelize.transaction(async (transaction) => {
+      const transactionOpt = { transaction };
+
+      // 删除userId下所有原photo
+      await this.photoModel.destroy({
+        where: { userId },
+        transaction,
+      });
+      
+      // 新增userId下新photo
+      const toSavePhotos = (photos ?? []).map(({ url = '' }) => {
+        return {
+          photoId: genRandomNumber(),
+          url,
+          userId,
+        };
+      });
+      await this.photoModel.bulkCreate(toSavePhotos, transactionOpt);
+    });
+  }
+
+  async getUser(userId: number) {
+    const user = await this.userModel.findOne({
+      where: {
+        userId,
+      },
+      include: [{ model: Photo }],
+    });
+    const retUser = plainToInstance(UserRetDto, user);
+    return retUser;
   }
 }

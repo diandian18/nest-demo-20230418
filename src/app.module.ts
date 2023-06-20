@@ -34,6 +34,7 @@ import {JwtModule} from '@nestjs/jwt';
 import { AuthGuard } from '@/auth/auth.guard';
 import { AuthModule } from '@/auth/auth.module';
 import { RoleModule } from './role/role.module';
+import { TenantModule } from './tenant/tenant.module';
 
 @Controller('/')
 export class AppController {
@@ -185,6 +186,8 @@ export class AppController {
     AuthModule,
 
     RoleModule,
+
+    TenantModule,
   ],
   providers: [
     {

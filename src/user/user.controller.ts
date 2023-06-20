@@ -1,6 +1,6 @@
 import { Public } from '@/auth/auth.decorator';
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
-import { PostLoginReqDto, PostRegisterReqDto, UserDto2 } from './user.dto';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { PostLoginReqDto, PostRegisterReqDto, PutUserReqDto, UserDto2 } from './user.dto';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -46,5 +46,15 @@ export class UserController {
   @Post('refresh-token')
   async postRefreshToken(@Body('refreshToken') refreshToken: string) {
     return await this.userService.postRefreshToken(refreshToken);
+  }
+
+  @Put(':userId')
+  async putUser(@Param('userId', ParseIntPipe) userId: number, @Body() user: PutUserReqDto) {
+    await this.userService.putUser(userId, user);
+  }
+
+  @Get(':userId')
+  async getUser(@Param('userId', ParseIntPipe) userId: number) {
+    return await this.userService.getUser(userId);
   }
 }

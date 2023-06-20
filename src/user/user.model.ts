@@ -1,4 +1,5 @@
 import {BaseModel, mergeExcludeFields} from '@/common/sequelize';
+import { TenantModel } from '@/tenant/tenant.model';
 import {BelongsTo, Column, DefaultScope, ForeignKey, HasMany, Table} from "sequelize-typescript";
 
 @DefaultScope(() => ({
@@ -26,9 +27,19 @@ export class User extends BaseModel {
   isActive: boolean;
 
   @HasMany(() => Photo)
-  photo: Photo[];
+  photos: Photo[];
+
+  @Column
+  @ForeignKey(() => TenantModel)
+  tenantId: number;
+
+  @BelongsTo(() => TenantModel)
+  tenant: TenantModel;
 }
 
+/**
+ * photo表
+ */
 @DefaultScope(() => ({
   attributes: { exclude: mergeExcludeFields([/* 'userId' */]) },
 }))

@@ -25,7 +25,7 @@ export class ValidationPipe<T> implements PipeTransform<T, T> {
     if (errors.length > 0) {
       throw new BadRequestException(genResponse.fail(
         StatusCodeEnum.BIND_EXCEPTION.code,
-        `${StatusCodeEnum.BIND_EXCEPTION.message}: ${errors.map(item => item.constraints.isString).join('; ')}`,
+        `${StatusCodeEnum.BIND_EXCEPTION.message}: ${errors.map(item => Object.values(item.constraints).join(', ')).join('; ')}`,
       ));
     }
 

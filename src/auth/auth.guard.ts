@@ -1,7 +1,6 @@
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
 import genResponse from '@/common/utils/genResponse';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { CanActivate, ExecutionContext, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { NO_AUTH_REQUIRED_KEY } from './auth.const';
 import { AuthService } from './auth.service';
@@ -11,7 +10,6 @@ export class AuthGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private logger: Logger,
-    @Inject(CACHE_MANAGER)
     private authService: AuthService,
   ) {}
 

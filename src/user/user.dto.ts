@@ -1,7 +1,9 @@
 import { Exclude, Expose } from 'class-transformer';
-import { IsArray, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsString } from 'class-validator';
 
+@Exclude()
 export class PhotoDto {
+  @Expose()
   @IsString()
   url: string;
 }
@@ -38,6 +40,8 @@ export class UserRetDto {
   userAccount: string;
   @Expose()
   userId: number;
+  @Expose()
+  photos?: PhotoDto[];
 }
 
 /**
@@ -53,3 +57,10 @@ export class PostLoginRetDto extends UserRetDto {
   @Expose()
   expiration: number;
 }
+
+@Exclude()
+export class PutUserReqDto {
+  @Expose()
+  photos?: PhotoDto[];
+}
+
