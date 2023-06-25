@@ -20,8 +20,8 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
 
     // 业务中没有catch的错误，接口会返回500，在这里做拦截并自定义处理
     // @ts-ignore
-    const { message, stack } = exception;
-    if (httpStatus === HttpStatus.INTERNAL_SERVER_ERROR && message && stack) {
+    const { message, stack =  '' } = exception ?? {};
+    if (httpStatus === HttpStatus.INTERNAL_SERVER_ERROR) {
       // @ts-ignore
       this.logger.error(message, stack, 'AllExceptionsFilter');
       // @ts-ignore

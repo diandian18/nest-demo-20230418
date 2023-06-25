@@ -20,6 +20,7 @@ export class ValidationPipe<T> implements PipeTransform<T, T> {
 
     const object = plainToInstance(metatype, value);
     console.log('[ValidationPipe] object: ', object);
+    // 这里可以做必不传校验，通过比较value和object的key数量。不过一般不会这么做
     const errors = validateSync(object);
     console.log('[ValidationPipe] errors: ', errors);
     if (errors.length > 0) {
@@ -29,7 +30,8 @@ export class ValidationPipe<T> implements PipeTransform<T, T> {
       ));
     }
 
-    return value;
+    // 返回object，是过滤后的值；而value是原来的值
+    return object;
   }
 
   private toValidate(metatype: Function): boolean {
