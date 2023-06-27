@@ -13,9 +13,9 @@ import {redisStore} from 'cache-manager-redis-store';
 // import { redisStore } from 'cache-manager-redis-yet';
 // import { redisStore } from 'cache-manager-ioredis-yet';
 import { RedisClientOptions } from 'redis';
-import {RedisModule} from '@/redis/redis.module';
+// import {RedisModule} from '@/redis/redis.module';
 import {UserModule} from '@/user/user.module';
-import {LoggingInterceptor} from '@/common/interceptors/logging.interceptor';
+// import {LoggingInterceptor} from '@/common/interceptors/logging.interceptor';
 import {TransformInterceptor} from '@/common/interceptors/transform.interceptor';
 // import {ExcludeNullInterceptor} from '@/common/interceptors/excludeNull.interceptor';
 import {ErrorsInterceptor} from '@/common/interceptors/errors.interceptor';
@@ -27,7 +27,7 @@ import {TimeoutInterceptor} from '@/common/interceptors/timeout.interceptor';
 // import {User} from './user/user.entity';
 import {SequelizeModule} from '@nestjs/sequelize';
 import { HttpModule } from '@/http/http.module';
-import {WinstonModule} from 'nest-winston';
+// import {WinstonModule} from 'nest-winston';
 import {AllExceptionsFilter} from './common/filters/allExceptions.filter';
 import {ResponseInterceptor} from './common/interceptors/response.interceptor';
 import {JwtModule} from '@nestjs/jwt';
@@ -214,10 +214,10 @@ export class AppController {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
     },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: LoggingInterceptor,
-    },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: LoggingInterceptor,
+    // },
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,

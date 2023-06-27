@@ -1,7 +1,7 @@
 import { genRandomNumber } from '@/common/utils/string';
 import { enumer } from '@/common/utils/type';
 import { UserRetDto } from '@/user/user.dto';
-import { User } from '@/user/user.model';
+import { UserModel } from '@/user/user.model';
 import { Injectable, Scope } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { plainToInstance } from 'class-transformer';
@@ -16,8 +16,8 @@ export class TenantService {
     private sequelize: Sequelize,
     @InjectModel(TenantModel)
     private tenantModel: typeof TenantModel,
-    @InjectModel(User)
-    private userModel: typeof User,
+    @InjectModel(UserModel)
+    private userModel: typeof UserModel,
   ) {}
   async postTenant(user: UserRetDto, postTenantDto: PostTenantReqDto) {
     // 推荐这种写法，比较简洁，另一种写法需要手动抛错

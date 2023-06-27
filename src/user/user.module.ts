@@ -5,14 +5,14 @@ import {SequelizeModule} from '@nestjs/sequelize';
 // import {jwtConst} from './user.consts';
 // import {TypeOrmModule} from '@nestjs/typeorm';
 import { UserController } from './user.controller';
-import {Photo, User} from './user.model';
+import {Photo, UserModel} from './user.model';
 // import {Photo, User} from './user.entity';
 import { UserService } from './user.service';
 // import {UserSubscriber} from './user.subscriber';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([User, Photo]), // 或forFeature([UserSchema]) Nest 允许您在任何需要实体的地方使用 EntitySchema 实例
+    SequelizeModule.forFeature([UserModel, Photo]), // 或forFeature([UserSchema]) Nest 允许您在任何需要实体的地方使用 EntitySchema 实例
   ], 
   controllers: [UserController],
   // providers: [UserService, UserSubscriber],

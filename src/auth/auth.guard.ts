@@ -14,6 +14,10 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // 请求入口日志
+    const request = context.switchToHttp().getRequest<Request>();
+    const info = `${context.getClass().name} - ${request.method} - ${request.url} - ${JSON.stringify(request.body)}`
+    this.logger.log(info, AuthGuard.name);
     // 如果是白名单接口，则直接通过
     const noAuthRequired = this.reflector.getAllAndOverride<boolean>(
       NO_AUTH_REQUIRED_KEY,
@@ -24,9 +28,9 @@ export class AuthGuard implements CanActivate {
     }
 
     // 获取请求头
-    const request = context.switchToHttp().getRequest<Request>();
+    // const request = context.switchToHttp().getRequest<Request>();
     const accessToken = this.extractTokenFromHeader(request);
-    this.logger.log(`[AuthGuard] accessToken:${accessToken}`);
+    this.logger.log(`accessToken: ${accessToken}`, AuthGuard.name);
 
     // 判断token这个一般逻辑在 网关层(gateway) 做
     if (!accessToken) {

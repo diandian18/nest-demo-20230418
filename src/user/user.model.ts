@@ -13,7 +13,7 @@ import {BelongsTo, Column, DefaultScope, ForeignKey, HasMany, Table} from "seque
   tableName: 'user',
   // timestamps: false,
 })
-export class User extends BaseModel {
+export class UserModel extends BaseModel {
   @Column({ primaryKey: true })
   userId: number;
 
@@ -55,11 +55,11 @@ export class Photo extends BaseModel {
   url: string;
 
   @Column
-  @ForeignKey(() => User)
+  @ForeignKey(() => UserModel)
   userId: number; // 关联User表
 
-  @BelongsTo(() => User)
-  user: User;
+  @BelongsTo(() => UserModel)
+  user: UserModel;
 }
 
 @DefaultScope(() => ({
@@ -77,10 +77,10 @@ export class UserInfo extends BaseModel {
   nickname: string;
 
   @Column
-  @ForeignKey(() => User)
+  @ForeignKey(() => UserModel)
   userId: number; // 关联User表
 
-  @BelongsTo(() => User)
-  user: User;
+  @BelongsTo(() => UserModel)
+  user: UserModel;
 }
 

@@ -10,7 +10,7 @@ import { Sequelize } from 'sequelize-typescript';
 // import {InjectRepository} from '@nestjs/typeorm';
 // import {DataSource, Repository} from 'typeorm';
 import { PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, PutUserReqDto, UserDto2, UserRetDto } from './user.dto';
-import { Photo, User } from './user.model';
+import { Photo, UserModel } from './user.model';
 // import {User} from './user.entity';
 
 @Injectable({ scope: Scope.REQUEST })
@@ -28,8 +28,8 @@ export class UserService {
     // private dataSource: DataSource,
 
     // sequelize版本
-    @InjectModel(User)
-    private userModel: typeof User,
+    @InjectModel(UserModel)
+    private userModel: typeof UserModel,
     @InjectModel(Photo)
     private photoModel: typeof Photo,
     private sequelize: Sequelize,

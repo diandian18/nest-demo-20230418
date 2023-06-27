@@ -1,5 +1,5 @@
 import { BaseModel } from '@/common/sequelize';
-import { User } from '@/user/user.model';
+import { UserModel } from '@/user/user.model';
 import { Column, HasMany, Table} from "sequelize-typescript";
 import { TenantStatus } from './tenant.type';
 
@@ -37,7 +37,7 @@ export class TenantModel extends BaseModel {
   @Column
   deleteFlag: BlEnum;
 
-  @HasMany(() => User)
-  users: User[];
+  @HasMany(() => UserModel)
+  users: UserModel[];
 }
 
