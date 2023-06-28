@@ -16,6 +16,13 @@ PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB COMMENT='用户表';
 ```
 
+### 新增sql
+
+```sql
+alter table test_nest add column tenant_id bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '租户id' after user_password;
+alter table test_nest add column role_id bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色id' after tenant_id;
+```
+
 ## photo表
 
 ```sql
@@ -68,5 +75,26 @@ CREATE TABLE `tenant` (
   PRIMARY KEY (`tenant_id`),
   KEY `idx_tenantStatus` (`tenant_status`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户 ';
+```
+
+## role表
+
+```sql
+CREATE TABLE `role_info` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT '0'  COMMENT '角色id',
+  `role_name` varchar(64) NOT NULL DEFAULT '' COMMENT '角色名称',
+  `tenant_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '租户id',
+  `role_status` tinyint(4) unsigned NOT NULL DEFAULT '1' COMMENT '0.停用 1.启用',
+  `editable_flag` tinyint(4) unsigned NOT NULL DEFAULT '1' COMMENT '是否可编辑 0.不可编辑 1.可编辑',
+  `remark` varchar(128) NOT NULL DEFAULT '' COMMENT '备注',
+  `creator_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '创建人id',
+  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '更新人id',
+  `updated_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `delete_flag` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '删除标记：0-未删除，1-已删除',
+  PRIMARY KEY (`role_id`),
+  KEY `idx_roleName` (`role_name`) USING BTREE,
+  KEY `idx_tenantId` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色';
 ```
 

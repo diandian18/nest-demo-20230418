@@ -1,4 +1,5 @@
 import {BaseModel, mergeExcludeFields} from '@/common/sequelize';
+import { RoleModel } from '@/role/role.model';
 import { TenantModel } from '@/tenant/tenant.model';
 import {BelongsTo, Column, DefaultScope, ForeignKey, HasMany, Table} from "sequelize-typescript";
 
@@ -35,6 +36,13 @@ export class UserModel extends BaseModel {
 
   @BelongsTo(() => TenantModel)
   tenant: TenantModel;
+
+  @Column
+  @ForeignKey(() => RoleModel)
+  roleId: number;
+
+  @BelongsTo(() => RoleModel)
+  role: RoleModel;
 }
 
 /**

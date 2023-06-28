@@ -41,7 +41,9 @@ export class UserRetDto {
   @Expose()
   userId: number;
   @Expose()
-  photos?: PhotoDto[];
+  photos: PhotoDto[];
+  @Expose()
+  tenantId: number;
 }
 
 /**
