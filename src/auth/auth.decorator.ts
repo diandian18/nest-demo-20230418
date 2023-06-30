@@ -1,4 +1,4 @@
-import { UserRetDto } from '@/user/user.dto';
+import { RedisTokenUserDto } from '@/user/user.dto';
 import { createParamDecorator, ExecutionContext, SetMetadata } from '@nestjs/common';
 import { NO_AUTH_REQUIRED_KEY } from './auth.const';
 
@@ -9,7 +9,7 @@ export function Public() {
   return SetMetadata(NO_AUTH_REQUIRED_KEY, true);
 }
 
-export const ReqUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): UserRetDto => {
+export const ReqUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): RedisTokenUserDto => {
   const request = ctx.switchToHttp().getRequest();
   return request.user;
 });

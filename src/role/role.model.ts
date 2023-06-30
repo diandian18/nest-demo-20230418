@@ -1,6 +1,7 @@
 import { BaseModel } from '@/common/sequelize';
+import { TenantModel } from '@/tenant/tenant.model';
 import { UserModel } from '@/user/user.model';
-import { Column, HasMany, Table } from 'sequelize-typescript';
+import { BelongsTo, Column, ForeignKey, HasMany, Table } from 'sequelize-typescript';
 import { RoleStatus } from './role.dto';
 
 /**
@@ -14,8 +15,13 @@ export class RoleModel extends BaseModel {
   roleId: number;
   @Column
   roleName: string;
+
+  @ForeignKey(() => TenantModel)
   @Column
   tenantId: number;
+  @BelongsTo(() => TenantModel) 
+  tenant: TenantModel;
+
   @Column
   roleStatus: RoleStatus;
   @Column
@@ -24,6 +30,7 @@ export class RoleModel extends BaseModel {
   remark: string;
   @Column
   deleteFalg: BlEnum;
+
   @HasMany(() => UserModel)
   users: UserModel[];
 }

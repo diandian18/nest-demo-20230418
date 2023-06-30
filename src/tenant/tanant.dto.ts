@@ -7,11 +7,11 @@ import { IsNotEmpty, IsOptional } from 'class-validator';
 export class PostTenantReqDto {
   @IsNotEmpty()
   tenantName: string;
-  @IsNotEmpty()
+  @IsOptional()
   contactName: string;
-  @IsNotEmpty()
+  @IsOptional()
   contactMobile: string;
-  @IsNotEmpty()
+  @IsOptional()
   contactEmail: string;
   @IsOptional()
   remark: string;
@@ -21,7 +21,7 @@ export class PostTenantReqDto {
  * 获取租户出参
  */
 @Exclude()
-export class GetTenantResDto {
+export class GetTenantRetDto {
   @Expose()
   tenantId: string;
   @Expose()
@@ -60,5 +60,14 @@ export class PutTenantReqDto {
   @Exclude()
   deleteFlag: boolean;
   // 不属于该类的参数，会被自动无视
+}
+
+export class PostSwitchTenantReqDto {
+  @IsNotEmpty()
+  accessToken: string;
+  @IsNotEmpty()
+  refreshToken: string;
+  @IsNotEmpty()
+  tenantId: number;
 }
 

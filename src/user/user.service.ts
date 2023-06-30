@@ -2,15 +2,19 @@ import { AuthService } from '@/auth/auth.service';
 import StatusCodeEnum from '@/common/enums/StatusCodeEnum';
 import { BusinessException } from '@/common/utils/businessException';
 import genResponse from '@/common/utils/genResponse';
+import { genId } from '@/common/utils/number';
 import { genRandomNumber } from '@/common/utils/string';
+import { TenantModel } from '@/tenant/tenant.model';
 import { Injectable, Scope } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { plainToInstance } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
+// import { validate } from 'class-validator';
 import { Sequelize } from 'sequelize-typescript';
 // import {InjectRepository} from '@nestjs/typeorm';
 // import {DataSource, Repository} from 'typeorm';
-import { PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, PutUserReqDto, UserDto2, UserRetDto } from './user.dto';
+import { PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, PutUserReqDto, RedisTokenUserDto, UserDto2, UserRetDto } from './user.dto';
 import { Photo, UserModel } from './user.model';
+import { UserType } from './user.types';
 // import {User} from './user.entity';
 
 @Injectable({ scope: Scope.REQUEST })
@@ -154,9 +158,10 @@ export class UserService {
 
   async postRegister(registerDto: PostRegisterReqDto) {
     const { userAccount, userPassword } = registerDto;
-    const userId = genRandomNumber();
+    const userId = await genId();
     const toSaveUser = {
       userId,
+      userType: UserType.PERSONAL,
       userAccount,
       userPassword,
       isActive: true,
@@ -170,6 +175,7 @@ export class UserService {
       where: {
         userAccount,
       },
+      include: [TenantModel, Photo],
     });
 
     // 账户不存在或者密码不匹配
@@ -178,12 +184,16 @@ export class UserService {
     }
 
     // 生成和保存token
-    const userDto = plainToInstance(UserRetDto, user.dataValues);
-    const tokenObj = await this.authService.genToken(userDto, { replace: false });
+    const redisUser = {
+      ...plainToClass(RedisTokenUserDto, user),
+      // 登录第一个tenant
+      currentTenantId: user.tenants?.[0]?.tenantId ?? 0,
+    }
+    const tokenObj = await this.authService.genToken(redisUser, { replace: false });
 
     // 根据PostLoginRetDto的定义，使用plainToInstance得到要返回的值 (这里排除了userPassword isActive等字段)
     const retUser = plainToInstance(PostLoginRetDto, {
-      ...user.dataValues,
+      ...redisUser,
       ...tokenObj,
     });
 
@@ -221,13 +231,13 @@ export class UserService {
       });
       
       // 新增userId下新photo
-      const toSavePhotos = (photos ?? []).map(({ url = '' }) => {
+      const toSavePhotos = await Promise.all((photos ?? []).map(async ({ url = '' }) => {
         return {
-          photoId: genRandomNumber(),
+          photoId: await genId(),
           url,
           userId,
         };
-      });
+      }));
       await this.photoModel.bulkCreate(toSavePhotos, transactionOpt);
     });
   }
@@ -237,7 +247,7 @@ export class UserService {
       where: {
         userId,
       },
-      include: [{ model: Photo }],
+      include: [Photo, TenantModel],
     });
     const retUser = plainToInstance(UserRetDto, user);
     return retUser;

@@ -1,12 +1,16 @@
-import { genRandomNumber } from '@/common/utils/string';
+import { getRedisAccessTokenKey, getRedisRefreshTokenKey } from '@/auth/auth.util';
+import { genId } from '@/common/utils/number';
 import { enumer } from '@/common/utils/type';
-import { UserRetDto } from '@/user/user.dto';
-import { UserModel } from '@/user/user.model';
-import { Injectable, Scope } from '@nestjs/common';
+import { RedisTokenUserDto } from '@/user/user.dto';
+import { UserModel, UserTenantModel } from '@/user/user.model';
+import { UserType } from '@/user/user.types';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, Scope } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Cache } from 'cache-manager';
 import { plainToInstance } from 'class-transformer';
 import { Sequelize } from 'sequelize-typescript';
-import { GetTenantResDto, PostTenantReqDto, PutTenantReqDto } from './tanant.dto';
+import { GetTenantRetDto, PostSwitchTenantReqDto, PostTenantReqDto, PutTenantReqDto } from './tanant.dto';
 import { TenantModel } from './tenant.model';
 import { TenantStatus } from './tenant.type';
 
@@ -18,12 +22,16 @@ export class TenantService {
     private tenantModel: typeof TenantModel,
     @InjectModel(UserModel)
     private userModel: typeof UserModel,
+    @InjectModel(UserTenantModel)
+    private userTenantModel: typeof UserTenantModel,
+    @Inject(CACHE_MANAGER)
+    private catchManager: Cache,
   ) {}
-  async postTenant(user: UserRetDto, postTenantDto: PostTenantReqDto) {
+  async postTenant(user: RedisTokenUserDto, postTenantDto: PostTenantReqDto) {
     // 推荐这种写法，比较简洁，另一种写法需要手动抛错
     await this.sequelize.transaction(async (transaction) => {
       const transactionOpts = { transaction };
-      const tenantId = genRandomNumber();
+      const tenantId = await genId();
       const toSaveTenant = {
         tenantName: postTenantDto.tenantName,
         contactName: postTenantDto.contactName,
@@ -38,13 +46,17 @@ export class TenantService {
       };
       await this.tenantModel.create(toSaveTenant, transactionOpts);
       await this.userModel.update({
-        tenantId,
+        userType: UserType.TENANT,
       }, {
         where: {
           userId: user.userId,
         },
         ...transactionOpts,
       });
+      await this.userTenantModel.create({
+        userId: user.userId,
+        tenantId,
+      }, transactionOpts);
     });
     // try {
     //   // ...
@@ -61,7 +73,7 @@ export class TenantService {
         tenantId,
       },
     });
-    const tenantRet = plainToInstance(GetTenantResDto, tenantDb);
+    const tenantRet = plainToInstance(GetTenantRetDto, tenantDb);
     return tenantRet;
   }
 
@@ -82,4 +94,19 @@ export class TenantService {
       },
     });
   }
+
+  async postSwitchTenant(user: RedisTokenUserDto, postSwitchTenantReqDto: PostSwitchTenantReqDto) {
+    const { accessToken, refreshToken, tenantId } = postSwitchTenantReqDto;
+    const accessTokenKey = getRedisAccessTokenKey(accessToken);
+    const refreshTokenKey = getRedisRefreshTokenKey(refreshToken)
+    await this.catchManager.set(accessTokenKey, JSON.stringify({
+      ...user,
+      currentTenantId: tenantId,
+    }));
+    await this.catchManager.set(refreshTokenKey, JSON.stringify({
+      ...user,
+      currentTenantId: tenantId,
+    }));
+  }
 }
+

@@ -1,5 +1,5 @@
 import { ReqUser } from '@/auth/auth.decorator';
-import { UserRetDto } from '@/user/user.dto';
+import { RedisTokenUserDto } from '@/user/user.dto';
 import { Body, Controller, Post } from '@nestjs/common';
 import { PostRoleReqDto } from './role.dto';
 import { RoleService } from './role.service';
@@ -10,10 +10,10 @@ export class RoleController {
     private roleService: RoleService,
   ) {}
   @Post()
-  async postRole(
-    @ReqUser() user: UserRetDto,
-    @Body() postRoleReqDto: PostRoleReqDto,
+  async postRoles(
+    @ReqUser() user: RedisTokenUserDto,
+    @Body() postRoleReqDtos: PostRoleReqDto[],
   ) {
-    this.roleService.postRole(user, postRoleReqDto); 
+    this.roleService.postRoles(user, postRoleReqDtos); 
   }
 }

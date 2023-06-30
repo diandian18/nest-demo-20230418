@@ -1,4 +1,4 @@
-import { UserModel } from '@/user/user.model';
+import { UserModel, UserTenantModel } from '@/user/user.model';
 import { Logger, Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { TenantController } from './tenant.controller';
@@ -7,7 +7,7 @@ import { TenantService } from './tenant.service';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([TenantModel, UserModel]),
+    SequelizeModule.forFeature([TenantModel, UserModel, UserTenantModel]),
   ], 
   exports: [SequelizeModule],
   controllers: [TenantController],

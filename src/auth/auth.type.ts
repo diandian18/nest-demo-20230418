@@ -1,5 +1,5 @@
-import { UserRetDto } from '@/user/user.dto';
+import { RedisTokenUserDto } from '@/user/user.dto';
 
-export interface JwtPayload extends UserRetDto {
+export interface JwtPayload extends RedisTokenUserDto {
   timestamp: number;
 }

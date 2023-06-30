@@ -1,7 +1,7 @@
 import { JwtPayload } from './auth.type';
-import { genRedisAccessTokenKey, genRedisRefreshTokenKey, genRedisAuthUserIdKey } from './auth.util';
+import { getRedisAccessTokenKey, getRedisRefreshTokenKey, getRedisAuthUserIdKey } from './auth.util';
 import { ConfigService } from '@/config/config.service';
-import { UserRetDto } from '@/user/user.dto';
+import { RedisTokenUserDto } from '@/user/user.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -30,7 +30,7 @@ export class AuthService {
    * auth:userId:{userId} -> { accessToken, refreshToken }
    */
   async genToken(
-    user: UserRetDto,
+    user: RedisTokenUserDto,
     opts?: { replace?: boolean; refreshToken?: string },
   ) {
     const { replace = false } = opts ?? {};
@@ -46,8 +46,8 @@ export class AuthService {
     const expiration = Date.now() + refreshTokenTTL * 1000;
 
     // 生成redis键值对
-    const redisAccessTokenKey = genRedisAccessTokenKey(accessToken); // key格式: auth:access_token:{accessToken}
-    const redisRefreshTokenKey = genRedisRefreshTokenKey(refreshToken);
+    const redisAccessTokenKey = getRedisAccessTokenKey(accessToken); // key格式: auth:access_token:{accessToken}
+    const redisRefreshTokenKey = getRedisRefreshTokenKey(refreshToken);
     const redisTokenValue = JSON.stringify(user);
 
     // 保存在redis
@@ -75,17 +75,17 @@ export class AuthService {
       if (oldAccessToken && oldRefreshToken) {
         promises.push(
           this.cacheManager.del(
-            genRedisAccessTokenKey(oldAccessToken)
+            getRedisAccessTokenKey(oldAccessToken)
           ),
           this.cacheManager.del(
-            genRedisRefreshTokenKey(oldRefreshToken)
+            getRedisRefreshTokenKey(oldRefreshToken)
           ),
         );
       }
       // 更新userId -> token
       promises.push(
         this.cacheManager.set(
-          genRedisAuthUserIdKey(user.userId),
+          getRedisAuthUserIdKey(user.userId),
           JSON.stringify({
             accessToken,
             refreshToken,
@@ -108,9 +108,9 @@ export class AuthService {
    * 通过 accessToken 获取 redis 保存的user信息
    * auth:access_token:${accessToken} -> user
    */
-  async getUserRetDtoByAccessTokenInRedis(accessToken: string): Promise<UserRetDto> {
+  async getUserRetDtoByAccessTokenInRedis(accessToken: string): Promise<RedisTokenUserDto> {
     const userRetDto = await this.cacheManager.get<string>(
-      genRedisAccessTokenKey(accessToken),
+      getRedisAccessTokenKey(accessToken),
     );
     return JSON.parse(userRetDto ?? null) ?? null;
   }
@@ -119,9 +119,9 @@ export class AuthService {
    * 通过 refreshToken 获取 redis 保存的user信息
    * auth:refresh_token:${refreshToken} -> user
    */
-  async getUserRetDtoByRefreshTokenInRedis(refreshToken: string): Promise<UserRetDto> {
+  async getUserRetDtoByRefreshTokenInRedis(refreshToken: string): Promise<RedisTokenUserDto> {
     const userRetDto = await this.cacheManager.get<string>(
-      genRedisRefreshTokenKey(refreshToken)
+      getRedisRefreshTokenKey(refreshToken)
     );
     return JSON.parse(userRetDto ?? null) ?? null;
   }
@@ -135,7 +135,7 @@ export class AuthService {
     refreshToken: string;
   }> {
     const tokenJson = await this.cacheManager.get<string>(
-      genRedisAuthUserIdKey(userId),
+      getRedisAuthUserIdKey(userId),
     )
     const {
       accessToken = null,

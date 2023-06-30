@@ -1,5 +1,6 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 import { IsArray, IsString } from 'class-validator';
+import { GetTenantRetDto } from '@/tenant/tanant.dto';
 
 @Exclude()
 export class PhotoDto {
@@ -42,8 +43,16 @@ export class UserRetDto {
   userId: number;
   @Expose()
   photos: PhotoDto[];
+  // 多对多关系后，tenantId不需要返回
   @Expose()
-  tenantId: number;
+  @Type(() => GetTenantRetDto) // 嵌套的对象需要用Type, 参见https://github.com/typestack/class-transformer#working-with-nested-objects
+  tenants: GetTenantRetDto[];
+}
+
+@Exclude()
+export class RedisTokenUserDto extends UserRetDto {
+  @Expose()
+  currentTenantId: number;
 }
 
 /**
@@ -51,7 +60,7 @@ export class UserRetDto {
  * @Exclude()在顶部意味着会排除没有@Expose()装饰的所有字段
  */
 @Exclude()
-export class PostLoginRetDto extends UserRetDto {
+export class PostLoginRetDto extends RedisTokenUserDto {
   @Expose()
   accessToken: string;
   @Expose()
@@ -65,4 +74,3 @@ export class PutUserReqDto {
   @Expose()
   photos?: PhotoDto[];
 }
-

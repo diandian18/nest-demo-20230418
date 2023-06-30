@@ -15,3 +15,8 @@
 ## todo
 
 1. 将auth和permission独立出来，在网关层处理
+
+## 草稿
+
+create user -> create tenant -> auto generate roles by template, creating user become admin role
+

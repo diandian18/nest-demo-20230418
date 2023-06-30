@@ -1,8 +1,12 @@
 import {BaseModel, mergeExcludeFields} from '@/common/sequelize';
 import { RoleModel } from '@/role/role.model';
 import { TenantModel } from '@/tenant/tenant.model';
-import {BelongsTo, Column, DefaultScope, ForeignKey, HasMany, Table} from "sequelize-typescript";
+import {BelongsTo, BelongsToMany, Column, DefaultScope, ForeignKey, HasMany, Table} from "sequelize-typescript";
+import { UserType } from './user.types';
 
+/**
+ * 用户表
+ */
 @DefaultScope(() => ({
   attributes: {
     exclude: mergeExcludeFields([/* 'userPassword' */]),
@@ -19,6 +23,9 @@ export class UserModel extends BaseModel {
   userId: number;
 
   @Column
+  userType: UserType;
+
+  @Column
   userAccount: string;
 
   @Column
@@ -30,15 +37,13 @@ export class UserModel extends BaseModel {
   @HasMany(() => Photo)
   photos: Photo[];
 
-  @Column
-  @ForeignKey(() => TenantModel)
-  tenantId: number;
+  // 多对多装饰
+  @BelongsToMany(() => TenantModel, () => UserTenantModel)
+  tenants: TenantModel[];
 
-  @BelongsTo(() => TenantModel)
-  tenant: TenantModel;
-
-  @Column
+  // 一角色 -> 多用户
   @ForeignKey(() => RoleModel)
+  @Column
   roleId: number;
 
   @BelongsTo(() => RoleModel)
@@ -90,5 +95,31 @@ export class UserInfo extends BaseModel {
 
   @BelongsTo(() => UserModel)
   user: UserModel;
+}
+
+/**
+ * 用户-租户关联表
+ */
+@Table({
+  tableName: 'user_tenant',
+})
+export class UserTenantModel extends BaseModel {
+  @Column({ primaryKey: true })
+  id: number;
+
+  @ForeignKey(() => UserModel)
+  @Column
+  userId: number;
+  //@BelongsTo(() => UserModel)
+  //user: UserModel;
+
+  @ForeignKey(() => TenantModel)
+  @Column
+  tenantId: number;
+  //@BelongsTo(() => TenantModel)
+  //tenant: TenantModel;
+
+  @Column
+  deleteFlag: BlEnum;
 }
 
