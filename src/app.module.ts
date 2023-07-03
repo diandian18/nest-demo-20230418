@@ -35,6 +35,7 @@ import { AuthGuard } from '@/auth/auth.guard';
 import { AuthModule } from '@/auth/auth.module';
 import { RoleModule } from './role/role.module';
 import { TenantModule } from './tenant/tenant.module';
+import { PermissionModule } from './permission/permission.module';
 
 @Controller('/')
 export class AppController {
@@ -188,6 +189,8 @@ export class AppController {
     RoleModule,
 
     TenantModule,
+
+    PermissionModule,
   ],
   providers: [
     {

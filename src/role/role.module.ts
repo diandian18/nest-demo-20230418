@@ -2,11 +2,11 @@ import { Logger, Module } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { RoleController } from './role.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { RoleModel } from './role.model';
+import { PermissionModel, RoleModel, RolePermissionModel } from './role.model';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([RoleModel]),
+    SequelizeModule.forFeature([RoleModel, PermissionModel, RolePermissionModel]),
   ],
   providers: [RoleService, Logger],
   controllers: [RoleController]

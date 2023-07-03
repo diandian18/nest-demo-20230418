@@ -264,8 +264,19 @@ export class UserService {
     return retUser;
   }
 
+  /**
+   * 切换租户
+   */
   async postSwitchTenant(user: RedisTokenUserDto, postSwitchTenantReqDto: PostSwitchTenantReqDto) {
     const { tenantId } = postSwitchTenantReqDto;
+    const { tenants } = user;
+    if (!tenants.some(item => parseInt(item.tenantId) === tenantId)) {
+      throw new BusinessException(
+        genResponse.fail(
+          StatusCodeEnum.SWITCHING_TENANT_NOT_FOUND,
+        ),
+      ); 
+    }
     const redisUser = {
       ...user,
       currentTenantId: tenantId,

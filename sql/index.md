@@ -117,3 +117,43 @@ CREATE TABLE `role_info` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色';
 ```
 
+## permission表
+
+```sql
+CREATE TABLE test_nest.permission (
+  `permission_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '权限id',
+  `parent_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '父节点id',
+  `has_children` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '是否有子节点 0.否 1.是',
+  `permission_name` varchar(128) NOT NULL DEFAULT '' COMMENT '权限名称',
+  `permission_code` varchar(32) NOT NULL DEFAULT '' COMMENT '权限code',
+  `permission_type` tinyint(4) unsigned NOT NULL DEFAULT '1' COMMENT '权限类型 1.菜单 2.接口',
+  `permission_level` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '层级',
+  `sequence` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '序号',
+  `remark` varchar(128) NOT NULL DEFAULT '' COMMENT '备注',
+  `creator_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '创建人id',
+  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '更新人id',
+  `updated_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `delete_flag` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '删除标记：0-未删除，1-已删除',
+  PRIMARY KEY (`permission_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='权限';
+```
+
+## role_permission表
+
+```sql
+CREATE TABLE test_nest.role_permission (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键id',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '角色id',
+  `permission_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '权限id',
+  `creator_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '创建人id',
+  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '更新人id',
+  `updated_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `delete_flag` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '删除标记：0-未删除，1-已删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_roleId` (`role_id`) USING BTREE,
+  KEY `idx_permissionId` (`permission_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='角色和权限关联';
+```
+
