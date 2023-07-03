@@ -1,5 +1,5 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { IsArray, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 import { GetTenantRetDto } from '@/tenant/tanant.dto';
 
 @Exclude()
@@ -74,3 +74,9 @@ export class PutUserReqDto {
   @Expose()
   photos?: PhotoDto[];
 }
+
+export class PostSwitchTenantReqDto {
+  @IsNotEmpty()
+  tenantId: number;
+}
+

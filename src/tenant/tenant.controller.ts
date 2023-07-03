@@ -1,7 +1,7 @@
 import { ReqUser } from '@/auth/auth.decorator';
 import { RedisTokenUserDto } from '@/user/user.dto';
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
-import { PostSwitchTenantReqDto, PostTenantReqDto, PutTenantReqDto } from './tanant.dto';
+import { PostTenantReqDto, PutTenantReqDto } from './tanant.dto';
 import { TenantService } from './tenant.service';
 
 @Controller('tenant')
@@ -30,10 +30,5 @@ export class TenantController {
   @Delete(':tenantId')
   async deleteTenant(@Param('tenantId', ParseIntPipe) tenantId: number) {
     await this.tenantService.deleteTenant(tenantId);
-  }
-
-  @Post('/switch')
-  async postSwitchTenant(@ReqUser() user: RedisTokenUserDto, @Body() postSwitchTenantReqDto: PostSwitchTenantReqDto) {
-    await this.tenantService.postSwitchTenant(user, postSwitchTenantReqDto);
   }
 }

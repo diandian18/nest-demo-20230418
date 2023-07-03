@@ -1,6 +1,6 @@
-import { Public } from '@/auth/auth.decorator';
+import { Public, ReqUser } from '@/auth/auth.decorator';
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
-import { PostLoginReqDto, PostRegisterReqDto, PutUserReqDto, UserDto2 } from './user.dto';
+import { PostLoginReqDto, PostRegisterReqDto, PostSwitchTenantReqDto, PutUserReqDto, RedisTokenUserDto, UserDto2 } from './user.dto';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -56,5 +56,10 @@ export class UserController {
   @Get(':userId')
   async getUser(@Param('userId', ParseIntPipe) userId: number) {
     return await this.userService.getUser(userId);
+  }
+
+  @Post('switch')
+  async postSwitchTenant(@ReqUser() user: RedisTokenUserDto, @Body() postSwitchTenantReqDto: PostSwitchTenantReqDto) {
+    return await this.userService.postSwitchTenant(user, postSwitchTenantReqDto);
   }
 }

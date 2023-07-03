@@ -1,16 +1,16 @@
-import { getRedisAccessTokenKey, getRedisRefreshTokenKey } from '@/auth/auth.util';
+// import { getRedisAccessTokenKey, getRedisRefreshTokenKey } from '@/auth/auth.util';
 import { genId } from '@/common/utils/number';
 import { enumer } from '@/common/utils/type';
 import { RedisTokenUserDto } from '@/user/user.dto';
 import { UserModel, UserTenantModel } from '@/user/user.model';
 import { UserType } from '@/user/user.types';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, Scope } from '@nestjs/common';
+// import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Injectable, Scope } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Cache } from 'cache-manager';
+// import { Cache } from 'cache-manager';
 import { plainToInstance } from 'class-transformer';
 import { Sequelize } from 'sequelize-typescript';
-import { GetTenantRetDto, PostSwitchTenantReqDto, PostTenantReqDto, PutTenantReqDto } from './tanant.dto';
+import { GetTenantRetDto, PostTenantReqDto, PutTenantReqDto } from './tanant.dto';
 import { TenantModel } from './tenant.model';
 import { TenantStatus } from './tenant.type';
 
@@ -24,8 +24,8 @@ export class TenantService {
     private userModel: typeof UserModel,
     @InjectModel(UserTenantModel)
     private userTenantModel: typeof UserTenantModel,
-    @Inject(CACHE_MANAGER)
-    private catchManager: Cache,
+    //@Inject(CACHE_MANAGER)
+    //private catchManager: Cache,
   ) {}
   async postTenant(user: RedisTokenUserDto, postTenantDto: PostTenantReqDto) {
     // 推荐这种写法，比较简洁，另一种写法需要手动抛错
@@ -93,20 +93,6 @@ export class TenantService {
         tenantId,
       },
     });
-  }
-
-  async postSwitchTenant(user: RedisTokenUserDto, postSwitchTenantReqDto: PostSwitchTenantReqDto) {
-    const { accessToken, refreshToken, tenantId } = postSwitchTenantReqDto;
-    const accessTokenKey = getRedisAccessTokenKey(accessToken);
-    const refreshTokenKey = getRedisRefreshTokenKey(refreshToken)
-    await this.catchManager.set(accessTokenKey, JSON.stringify({
-      ...user,
-      currentTenantId: tenantId,
-    }));
-    await this.catchManager.set(refreshTokenKey, JSON.stringify({
-      ...user,
-      currentTenantId: tenantId,
-    }));
   }
 }
 

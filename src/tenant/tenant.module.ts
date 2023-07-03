@@ -1,3 +1,4 @@
+import { AuthService } from '@/auth/auth.service';
 import { UserModel, UserTenantModel } from '@/user/user.model';
 import { Logger, Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
@@ -11,6 +12,6 @@ import { TenantService } from './tenant.service';
   ], 
   exports: [SequelizeModule],
   controllers: [TenantController],
-  providers: [TenantService, Logger], // Logger需要手动声明下，不然service注入不了
+  providers: [TenantService, Logger, AuthService], // Logger需要手动声明下，不然service注入不了
 })
 export class TenantModule {}

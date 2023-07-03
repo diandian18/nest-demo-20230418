@@ -62,12 +62,3 @@ export class PutTenantReqDto {
   // 不属于该类的参数，会被自动无视
 }
 
-export class PostSwitchTenantReqDto {
-  @IsNotEmpty()
-  accessToken: string;
-  @IsNotEmpty()
-  refreshToken: string;
-  @IsNotEmpty()
-  tenantId: number;
-}
-

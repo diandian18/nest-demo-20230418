@@ -12,3 +12,8 @@ export function enumer(val: boolean): BlEnum {
   return val ? 1 : 0;
 }
 
+export function isEnvTrue(envVal: string) {
+  const trueAry = ['true', '1'];
+  return trueAry.includes(envVal);
+}
+

@@ -4,6 +4,8 @@ import { BusinessException } from '@/common/utils/businessException';
 import genResponse from '@/common/utils/genResponse';
 import { genId } from '@/common/utils/number';
 import { genRandomNumber } from '@/common/utils/string';
+import { isEnvTrue } from '@/common/utils/type';
+import { ConfigService } from '@/config/config.service';
 import { TenantModel } from '@/tenant/tenant.model';
 import { Injectable, Scope } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
@@ -12,7 +14,7 @@ import { plainToClass, plainToInstance } from 'class-transformer';
 import { Sequelize } from 'sequelize-typescript';
 // import {InjectRepository} from '@nestjs/typeorm';
 // import {DataSource, Repository} from 'typeorm';
-import { PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, PutUserReqDto, RedisTokenUserDto, UserDto2, UserRetDto } from './user.dto';
+import { PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, PostSwitchTenantReqDto, PutUserReqDto, RedisTokenUserDto, UserDto2, UserRetDto } from './user.dto';
 import { Photo, UserModel } from './user.model';
 import { UserType } from './user.types';
 // import {User} from './user.entity';
@@ -38,6 +40,7 @@ export class UserService {
     private photoModel: typeof Photo,
     private sequelize: Sequelize,
     private authService: AuthService,
+    private configService: ConfigService,
   ) {}
 
   async findAll() {
@@ -189,7 +192,11 @@ export class UserService {
       // 登录第一个tenant
       currentTenantId: user.tenants?.[0]?.tenantId ?? 0,
     }
-    const tokenObj = await this.authService.genToken(redisUser, { replace: false });
+    const tokenObj = await this.authService.genToken(redisUser, {
+      replace: isEnvTrue(
+        this.configService.get('LOGIN_REPLACE'),
+      ),
+    });
 
     // 根据PostLoginRetDto的定义，使用plainToInstance得到要返回的值 (这里排除了userPassword isActive等字段)
     const retUser = plainToInstance(PostLoginRetDto, {
@@ -214,7 +221,11 @@ export class UserService {
     }
 
     // replace模式下，会删除原token
-    return await this.authService.genToken(userDto, { replace: false });
+    return await this.authService.genToken(userDto, {
+      replace: isEnvTrue(
+        this.configService.get('LOGIN_REPLACE'),
+      ),
+    });
   }
 
   async putUser(userId: number, user: PutUserReqDto) {
@@ -250,6 +261,25 @@ export class UserService {
       include: [Photo, TenantModel],
     });
     const retUser = plainToInstance(UserRetDto, user);
+    return retUser;
+  }
+
+  async postSwitchTenant(user: RedisTokenUserDto, postSwitchTenantReqDto: PostSwitchTenantReqDto) {
+    const { tenantId } = postSwitchTenantReqDto;
+    const redisUser = {
+      ...user,
+      currentTenantId: tenantId,
+    }
+    const tokenObj = await this.authService.genToken(redisUser, {
+      replace: isEnvTrue(
+        this.configService.get('LOGIN_REPLACE'),
+      ),
+    });
+    const retUser = plainToInstance(PostLoginRetDto, {
+      ...redisUser,
+      ...tokenObj,
+    });
+
     return retUser;
   }
 }
