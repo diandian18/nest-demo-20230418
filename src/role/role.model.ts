@@ -6,28 +6,6 @@ import { RoleStatus } from './role.dto';
 import { PermissionType } from './role.type';
 
 /**
- * 角色-权限关联表
- */
-@Table({
-  tableName: 'role_permission',
-})
-export class RolePermissionModel extends BaseModel {
-  @Column({ primaryKey: true })
-  id: number;
-
-  @ForeignKey(() => RoleModel)
-  @Column
-  roleId: number;
-
-  @ForeignKey(() => PermissionModel)
-  @Column
-  permissionId: number;
-
-  @Column
-  deleteFlag: BlEnum;
-}
-
-/**
  * 角色表
  */
 @Table({
@@ -95,5 +73,27 @@ export class PermissionModel extends BaseModel {
   // 角色 <-> 权限
   @BelongsToMany(() => RoleModel, () => RolePermissionModel)
   roles: RoleModel[];
+}
+
+/**
+ * 角色-权限关联表
+ */
+@Table({
+  tableName: 'role_permission',
+})
+export class RolePermissionModel extends BaseModel {
+  @Column({ primaryKey: true })
+  id: number;
+
+  @ForeignKey(() => RoleModel)
+  @Column
+  roleId: number;
+
+  @ForeignKey(() => PermissionModel)
+  @Column
+  permissionId: number;
+
+  @Column
+  deleteFlag: BlEnum;
 }
 

@@ -14,11 +14,11 @@ export class RoleController {
     @ReqUser() user: RedisTokenUserDto,
     @Body() postRoleReqDto: PostRoleReqDto,
   ) {
-    await this.roleService.postRoles(user, postRoleReqDto); 
+    await this.roleService.createRole(user, postRoleReqDto, []); 
   }
 
   @Get('permissions')
   async getPermissions() {
-    await this.roleService.getPermissions();
+    return await this.roleService.getPermissions();
   }
 }

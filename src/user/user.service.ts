@@ -7,6 +7,7 @@ import { genRandomNumber } from '@/common/utils/string';
 import { isEnvTrue } from '@/common/utils/type';
 import { ConfigService } from '@/config/config.service';
 import { TenantModel } from '@/tenant/tenant.model';
+import { TransactionOpts } from '@/types';
 import { Injectable, Scope } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { plainToClass, plainToInstance } from 'class-transformer';
@@ -229,16 +230,26 @@ export class UserService {
   }
 
   async putUser(userId: number, user: PutUserReqDto) {
-    const { photos } = user;
-    console.log('photos: ', photos);
-
     await this.sequelize.transaction(async (transaction) => {
       const transactionOpt = { transaction };
+      await this.modelPutUser(userId, user, transactionOpt); 
+    });
+  }
 
+  public async modelPutUser(userId: number, user: PutUserReqDto, transactionOpt: TransactionOpts) {
+    const { photos, roleId, userType } = user;
+    await this.userModel.update({
+      roleId,
+      userType,
+    }, {
+      where: { userId },
+      ...transactionOpt,
+    });
+    if (photos) {
       // 删除userId下所有原photo
       await this.photoModel.destroy({
         where: { userId },
-        transaction,
+        ...transactionOpt,
       });
       
       // 新增userId下新photo
@@ -250,7 +261,7 @@ export class UserService {
         };
       }));
       await this.photoModel.bulkCreate(toSavePhotos, transactionOpt);
-    });
+    }
   }
 
   async getUser(userId: number) {

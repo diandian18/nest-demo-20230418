@@ -1,6 +1,7 @@
 import {BaseModel, mergeExcludeFields} from '@/common/sequelize';
 import { RoleModel } from '@/role/role.model';
 import { TenantModel } from '@/tenant/tenant.model';
+import { UserTenantModel } from '@/user-tenant/user-tenant.model';
 import {BelongsTo, BelongsToMany, Column, DefaultScope, ForeignKey, HasMany, Table} from "sequelize-typescript";
 import { UserType } from './user.types';
 
@@ -95,31 +96,5 @@ export class UserInfo extends BaseModel {
 
   @BelongsTo(() => UserModel)
   user: UserModel;
-}
-
-/**
- * 用户-租户关联表
- */
-@Table({
-  tableName: 'user_tenant',
-})
-export class UserTenantModel extends BaseModel {
-  @Column({ primaryKey: true })
-  id: number;
-
-  @ForeignKey(() => UserModel)
-  @Column
-  userId: number;
-  //@BelongsTo(() => UserModel)
-  //user: UserModel;
-
-  @ForeignKey(() => TenantModel)
-  @Column
-  tenantId: number;
-  //@BelongsTo(() => TenantModel)
-  //tenant: TenantModel;
-
-  @Column
-  deleteFlag: BlEnum;
 }
 

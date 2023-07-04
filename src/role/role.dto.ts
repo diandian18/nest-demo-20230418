@@ -11,7 +11,8 @@ export class PostRoleReqDto {
   // roleId: number;
   @IsNotEmpty()
   roleName: string;
-  // tenantId: number;
+  @IsOptional()
+  tenantId?: number;
   // roleStatus: RoleStatus;
   // editableFlag: BlEnum;
   @IsOptional()
@@ -20,6 +21,8 @@ export class PostRoleReqDto {
 
 @Exclude()
 export class GetPermissionsResDto {
+  @Expose()
+  children: GetPermissionsResDto[];
   @Expose()
   permissionId: number;
   @Expose()

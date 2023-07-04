@@ -36,6 +36,7 @@ import { AuthModule } from '@/auth/auth.module';
 import { RoleModule } from './role/role.module';
 import { TenantModule } from './tenant/tenant.module';
 import { PermissionModule } from './permission/permission.module';
+import { UserTenantModule } from './user-tenant/user-tenant.module';
 
 @Controller('/')
 export class AppController {
@@ -191,6 +192,8 @@ export class AppController {
     TenantModule,
 
     PermissionModule,
+
+    UserTenantModule,
   ],
   providers: [
     {

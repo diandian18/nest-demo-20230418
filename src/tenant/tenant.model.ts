@@ -1,6 +1,7 @@
 import { BaseModel } from '@/common/sequelize';
 import { RoleModel } from '@/role/role.model';
-import { UserModel, UserTenantModel } from '@/user/user.model';
+import { UserTenantModel } from '@/user-tenant/user-tenant.model';
+import { UserModel } from '@/user/user.model';
 import { BelongsToMany, Column, HasMany, Table} from "sequelize-typescript";
 import { TenantStatus } from './tenant.type';
 

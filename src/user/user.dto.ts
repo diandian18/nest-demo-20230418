@@ -1,6 +1,7 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { GetTenantRetDto } from '@/tenant/tanant.dto';
+import { UserType } from './user.types';
 
 @Exclude()
 export class PhotoDto {
@@ -69,10 +70,13 @@ export class PostLoginRetDto extends RedisTokenUserDto {
   expiration: number;
 }
 
-@Exclude()
 export class PutUserReqDto {
-  @Expose()
+  @IsOptional()
   photos?: PhotoDto[];
+  @IsOptional()
+  roleId?: number;
+  @IsOptional()
+  userType?: UserType;
 }
 
 export class PostSwitchTenantReqDto {

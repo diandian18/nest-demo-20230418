@@ -1,8 +1,10 @@
 // import { getRedisAccessTokenKey, getRedisRefreshTokenKey } from '@/auth/auth.util';
 import { genId } from '@/common/utils/number';
 import { enumer } from '@/common/utils/type';
+import { RoleService } from '@/role/role.service';
+import { UserTenantService } from '@/user-tenant/user-tenant.service';
 import { RedisTokenUserDto } from '@/user/user.dto';
-import { UserModel, UserTenantModel } from '@/user/user.model';
+import { UserService } from '@/user/user.service';
 import { UserType } from '@/user/user.types';
 // import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Injectable, Scope } from '@nestjs/common';
@@ -20,12 +22,11 @@ export class TenantService {
     private sequelize: Sequelize,
     @InjectModel(TenantModel)
     private tenantModel: typeof TenantModel,
-    @InjectModel(UserModel)
-    private userModel: typeof UserModel,
-    @InjectModel(UserTenantModel)
-    private userTenantModel: typeof UserTenantModel,
     //@Inject(CACHE_MANAGER)
     //private catchManager: Cache,
+    private roleService: RoleService,
+    private userService: UserService,
+    private userTenantService: UserTenantService,
   ) {}
   async postTenant(user: RedisTokenUserDto, postTenantDto: PostTenantReqDto) {
     // 推荐这种写法，比较简洁，另一种写法需要手动抛错
@@ -44,18 +45,15 @@ export class TenantService {
         // forbiddenReason: '', // 有默认值的就不需要赋值了
         // deleteFlag: enumer(false),
       };
+      // 新增租户表记录
       await this.tenantModel.create(toSaveTenant, transactionOpts);
-      await this.userModel.update({
+      // 新增用户-租户关联表记录
+      await this.userTenantService.createOne(user.userId, tenantId, transactionOpts);
+      // 基于新的租户，创建一个管理员角色，并将创建者作为该租户管理员
+      const roleId = await this.roleService.createAdminRole(user, tenantId, transactionOpts);
+      await this.userService.modelPutUser(user.userId, {
+        roleId,
         userType: UserType.TENANT,
-      }, {
-        where: {
-          userId: user.userId,
-        },
-        ...transactionOpts,
-      });
-      await this.userTenantModel.create({
-        userId: user.userId,
-        tenantId,
       }, transactionOpts);
     });
     // try {
