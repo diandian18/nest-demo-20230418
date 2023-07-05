@@ -43,12 +43,12 @@ export class UserModel extends BaseModel {
   tenants: TenantModel[];
 
   // 一角色 -> 多用户
-  @ForeignKey(() => RoleModel)
-  @Column
-  roleId: number;
+  //@ForeignKey(() => RoleModel)
+  //@Column
+  //roleId: number;
 
-  @BelongsTo(() => RoleModel)
-  role: RoleModel;
+  //@BelongsTo(() => RoleModel)
+  //role: RoleModel;
 }
 
 /**

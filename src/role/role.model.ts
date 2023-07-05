@@ -34,8 +34,8 @@ export class RoleModel extends BaseModel {
   deleteFalg: BlEnum;
 
   // 角色 -> 用户
-  @HasMany(() => UserModel)
-  users: UserModel[];
+  //@HasMany(() => UserModel)
+  //users: UserModel[];
 
   // 角色 <-> 权限
   @BelongsToMany(() => PermissionModel, () => RolePermissionModel)

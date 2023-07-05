@@ -2,6 +2,7 @@
 import { genId } from '@/common/utils/number';
 import { enumer } from '@/common/utils/type';
 import { RoleService } from '@/role/role.service';
+import { UserTenantRoleService } from '@/user-tenant-role/user-tenant-role.service';
 import { UserTenantService } from '@/user-tenant/user-tenant.service';
 import { RedisTokenUserDto } from '@/user/user.dto';
 import { UserService } from '@/user/user.service';
@@ -27,6 +28,7 @@ export class TenantService {
     private roleService: RoleService,
     private userService: UserService,
     private userTenantService: UserTenantService,
+    private userTenantRoleService: UserTenantRoleService,
   ) {}
   async postTenant(user: RedisTokenUserDto, postTenantDto: PostTenantReqDto) {
     // 推荐这种写法，比较简洁，另一种写法需要手动抛错
@@ -49,10 +51,12 @@ export class TenantService {
       await this.tenantModel.create(toSaveTenant, transactionOpts);
       // 新增用户-租户关联表记录
       await this.userTenantService.createOne(user.userId, tenantId, transactionOpts);
-      // 基于新的租户，创建一个管理员角色，并将创建者作为该租户管理员
+      // 基于新的租户，创建一个管理员角色
       const roleId = await this.roleService.createAdminRole(user, tenantId, transactionOpts);
+      // 把角色赋给租户的用户
+      await this.userTenantRoleService.createOne(user.userId, tenantId, roleId, transactionOpts);
+      // 更新用户信息
       await this.userService.modelPutUser(user.userId, {
-        roleId,
         userType: UserType.TENANT,
       }, transactionOpts);
     });

@@ -53,9 +53,14 @@ export class UserController {
     await this.userService.putUser(userId, user);
   }
 
-  @Get(':userId')
-  async getUser(@Param('userId', ParseIntPipe) userId: number) {
-    return await this.userService.getUser(userId);
+  //@Get(':userId')
+  //async getUser(@Param('userId', ParseIntPipe) userId: number) {
+    //return await this.userService.getUser(userId);
+  //}
+
+  @Get('mine')
+  async getMine(@ReqUser() user: RedisTokenUserDto) {
+    return await this.userService.getMine(user);
   }
 
   @Post('switch')

@@ -19,7 +19,7 @@ PRIMARY KEY (`user_id`)
 ### 新增sql
 
 ```sql
-alter table test_nest.user add column role_id bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色id' after user_password;
+"alter table test_nest.user add column role_id bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色id' after user_password;
 alter table test_nest.user add column user_type tinyint(4) unsigned NOT NULL DEFAULT 0 COMMENT '用户类型; 0-个人用户, 1-租户用户' after user_id;
 alter table test_nest.user add column delete_flag tinyint(4) unsigned NOT NULL DEFAULT 0 COMMENT '删除标记：0-未删除，1-已删除' after updated_time;
 ```
@@ -155,5 +155,26 @@ CREATE TABLE test_nest.role_permission (
   KEY `idx_roleId` (`role_id`) USING BTREE,
   KEY `idx_permissionId` (`permission_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='角色和权限关联';
+```
+
+
+### user_tenant_role表
+
+```sql
+CREATE TABLE test_nest.user_tenant_role (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键id',
+  `user_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '用户id',
+  `tenant_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '租户id',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '角色id',
+  `creator_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '创建人id',
+  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '更新人id',
+  `updated_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `delete_flag` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '删除标记：0-未删除，1-已删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_userId` (`user_id`) USING BTREE,
+  KEY `idx_tenantId` (`tenant_id`) USING BTREE,
+  KEY `idx_roleId` (`role_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='用户和租户和角色关联';
 ```
 

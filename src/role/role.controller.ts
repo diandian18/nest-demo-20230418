@@ -1,7 +1,7 @@
 import { ReqUser } from '@/auth/auth.decorator';
 import { RedisTokenUserDto } from '@/user/user.dto';
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { PostRoleReqDto } from './role.dto';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { PostRoleReqDto, PutRolePermissionReqDto } from './role.dto';
 import { RoleService } from './role.service';
 
 @Controller('role')
@@ -9,6 +9,7 @@ export class RoleController {
   constructor(
     private roleService: RoleService,
   ) {}
+
   @Post()
   async postRoles(
     @ReqUser() user: RedisTokenUserDto,
@@ -19,6 +20,14 @@ export class RoleController {
 
   @Get('permissions')
   async getPermissions() {
-    return await this.roleService.getPermissions();
+    return await this.roleService.getAllPermissions();
+  }
+
+  @Put(':roleId')
+  async putPermissionOfRole(
+    @Param('roleId', ParseIntPipe) roleId: number,
+    @Body() putRolePermissionReqDto: PutRolePermissionReqDto,
+  ) {
+    await this.roleService.putPermissionOfRole(roleId, putRolePermissionReqDto);
   }
 }

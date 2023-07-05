@@ -33,28 +33,25 @@ export class PostLoginReqDto {
   userPassword: string;
 }
 
-/**
- * 可暴露的用户信息的返回dto
- */
 @Exclude()
-export class UserRetDto {
+export class GetMineResDto {
   @Expose()
   userAccount: string;
   @Expose()
   userId: number;
   @Expose()
-  photos: PhotoDto[];
-  // 多对多关系后，tenantId不需要返回
-  @Expose()
   @Type(() => GetTenantRetDto) // 嵌套的对象需要用Type, 参见https://github.com/typestack/class-transformer#working-with-nested-objects
   tenants: GetTenantRetDto[];
+  @Expose()
+  tenantId: number; // 当前租户
+  @Expose()
+  roleId: number; // 当前租户下的角色
+  @Expose()
+  permissions: string[];
 }
 
 @Exclude()
-export class RedisTokenUserDto extends UserRetDto {
-  @Expose()
-  currentTenantId: number;
-}
+export class RedisTokenUserDto extends GetMineResDto {}
 
 /**
  * login接口的返回dto
@@ -73,8 +70,6 @@ export class PostLoginRetDto extends RedisTokenUserDto {
 export class PutUserReqDto {
   @IsOptional()
   photos?: PhotoDto[];
-  @IsOptional()
-  roleId?: number;
   @IsOptional()
   userType?: UserType;
 }

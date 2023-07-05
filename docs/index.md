@@ -20,3 +20,11 @@
 
 create user -> create tenant -> auto generate roles by template, creating user become admin role
 
+- 注册
+- 登录
+- mine
+- 切换租户
+- 创建租户（角色/权限）
+
+- 删除租户
+

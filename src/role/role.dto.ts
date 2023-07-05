@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { PermissionType } from './role.type';
 
 export enum RoleStatus {
@@ -8,11 +8,11 @@ export enum RoleStatus {
 }
 
 export class PostRoleReqDto {
+  @IsOptional()
+  tenantId?: number;
   // roleId: number;
   @IsNotEmpty()
   roleName: string;
-  @IsOptional()
-  tenantId?: number;
   // roleStatus: RoleStatus;
   // editableFlag: BlEnum;
   @IsOptional()
@@ -43,5 +43,13 @@ export class GetPermissionsResDto {
   remark: string;
   @Expose()
   deleteFlag: BlEnum;
+}
+
+export class PutRolePermissionReqDto {
+  @IsArray()
+  permissionIdList: number[];
+  @IsString()
+  @IsOptional()
+  remark?: string;
 }
 

@@ -6,8 +6,10 @@ import { genId } from '@/common/utils/number';
 import { genRandomNumber } from '@/common/utils/string';
 import { isEnvTrue } from '@/common/utils/type';
 import { ConfigService } from '@/config/config.service';
+import { RoleService } from '@/role/role.service';
 import { TenantModel } from '@/tenant/tenant.model';
 import { TransactionOpts } from '@/types';
+import { UserTenantRoleService } from '@/user-tenant-role/user-tenant-role.service';
 import { Injectable, Scope } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { plainToClass, plainToInstance } from 'class-transformer';
@@ -15,7 +17,7 @@ import { plainToClass, plainToInstance } from 'class-transformer';
 import { Sequelize } from 'sequelize-typescript';
 // import {InjectRepository} from '@nestjs/typeorm';
 // import {DataSource, Repository} from 'typeorm';
-import { PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, PostSwitchTenantReqDto, PutUserReqDto, RedisTokenUserDto, UserDto2, UserRetDto } from './user.dto';
+import { GetMineResDto, PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, PostSwitchTenantReqDto, PutUserReqDto, RedisTokenUserDto, UserDto2 } from './user.dto';
 import { Photo, UserModel } from './user.model';
 import { UserType } from './user.types';
 // import {User} from './user.entity';
@@ -42,6 +44,8 @@ export class UserService {
     private sequelize: Sequelize,
     private authService: AuthService,
     private configService: ConfigService,
+    private userTenantRoleService: UserTenantRoleService,
+    private roleService: RoleService,
   ) {}
 
   async findAll() {
@@ -186,12 +190,18 @@ export class UserService {
     if (!user || userPassword !== user.dataValues?.userPassword) {
       throw new BusinessException(genResponse.fail(StatusCodeEnum.PASS_WRONG));
     }
+    
+    // 登录第一个tenant，没有就返回0代表个人
+    const tenantId = user.tenants?.[0]?.tenantId ?? 0;
+    const { roleId } = await this.userTenantRoleService.findRoleByUserIdTenantId(user.userId, tenantId);
+    const permissions = await this.roleService.getPermissionsByRoleId(roleId);
 
     // 生成和保存token
     const redisUser = {
       ...plainToClass(RedisTokenUserDto, user),
-      // 登录第一个tenant
-      currentTenantId: user.tenants?.[0]?.tenantId ?? 0,
+      tenantId,
+      roleId,
+      permissions,
     }
     const tokenObj = await this.authService.genToken(redisUser, {
       replace: isEnvTrue(
@@ -237,9 +247,8 @@ export class UserService {
   }
 
   public async modelPutUser(userId: number, user: PutUserReqDto, transactionOpt: TransactionOpts) {
-    const { photos, roleId, userType } = user;
+    const { photos, userType } = user;
     await this.userModel.update({
-      roleId,
       userType,
     }, {
       where: { userId },
@@ -264,15 +273,20 @@ export class UserService {
     }
   }
 
-  async getUser(userId: number) {
-    const user = await this.userModel.findOne({
-      where: {
-        userId,
-      },
-      include: [Photo, TenantModel],
+  async getMine(user: RedisTokenUserDto) {
+    const { userId, tenantId } = user;
+    const userDb = await this.userModel.findOne({
+      where: { userId },
+      include: [TenantModel],
     });
-    const retUser = plainToInstance(UserRetDto, user);
-    return retUser;
+    const { roleId } = await this.userTenantRoleService.findRoleByUserIdTenantId(userId, tenantId);
+    const permissions = await this.roleService.getPermissionsByRoleId(roleId);
+    return plainToInstance(GetMineResDto, {
+      ...userDb,
+      tenantId,
+      roleId,
+      permissions,
+    });
   }
 
   /**
@@ -280,17 +294,24 @@ export class UserService {
    */
   async postSwitchTenant(user: RedisTokenUserDto, postSwitchTenantReqDto: PostSwitchTenantReqDto) {
     const { tenantId } = postSwitchTenantReqDto;
-    const { tenants } = user;
-    if (!tenants.some(item => parseInt(item.tenantId) === tenantId)) {
+    const { tenants, userId } = user;
+    if (+tenantId !== 0 && !tenants.some(item => parseInt(item.tenantId) === tenantId)) {
       throw new BusinessException(
         genResponse.fail(
           StatusCodeEnum.SWITCHING_TENANT_NOT_FOUND,
         ),
       ); 
     }
+
+    const { roleId } = await this.userTenantRoleService.findRoleByUserIdTenantId(userId, tenantId);
+    const permissions = await this.roleService.getPermissionsByRoleId(roleId);
+    
     const redisUser = {
       ...user,
-      currentTenantId: tenantId,
+      // 个人用户都将是0
+      tenantId,
+      roleId,
+      permissions,
     }
     const tokenObj = await this.authService.genToken(redisUser, {
       replace: isEnvTrue(
@@ -305,3 +326,4 @@ export class UserService {
     return retUser;
   }
 }
+

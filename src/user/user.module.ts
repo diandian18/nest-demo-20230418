@@ -1,5 +1,9 @@
 // import {ConfigService} from '@/config/config.service';
+import { PermissionModel, RoleModel, RolePermissionModel } from '@/role/role.model';
+import { RoleService } from '@/role/role.service';
 import { TenantModel } from '@/tenant/tenant.model';
+import { UserTenantRoleModel } from '@/user-tenant-role/user-tenant-role.model';
+import { UserTenantRoleService } from '@/user-tenant-role/user-tenant-role.service';
 import { Module } from '@nestjs/common';
 // import {JwtModule} from '@nestjs/jwt';
 import { SequelizeModule } from '@nestjs/sequelize';
@@ -13,11 +17,11 @@ import { UserService } from './user.service';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([UserModel, TenantModel, Photo]), // 或forFeature([UserSchema]) Nest 允许您在任何需要实体的地方使用 EntitySchema 实例
+    SequelizeModule.forFeature([UserModel, TenantModel, Photo, UserTenantRoleModel, RoleModel, PermissionModel, RolePermissionModel]), // 或forFeature([UserSchema]) Nest 允许您在任何需要实体的地方使用 EntitySchema 实例
   ], 
   controllers: [UserController],
   // providers: [UserService, UserSubscriber],
-  providers: [UserService],
+  providers: [UserService, UserTenantRoleService, RoleService],
   // 导出后，其他import User的模块可以使用@InjectRepository(User)
   exports: [SequelizeModule],
 })
