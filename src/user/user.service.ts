@@ -21,6 +21,7 @@ import { GetMineResDto, PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, Po
 import { Photo, UserModel } from './user.model';
 import { UserType } from './user.types';
 // import {User} from './user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable({ scope: Scope.REQUEST })
 export class UserService {
@@ -166,12 +167,19 @@ export class UserService {
 
   async postRegister(registerDto: PostRegisterReqDto) {
     const { userAccount, userPassword } = registerDto;
+    const userDb = await this.userModel.findOne({
+      where: { userAccount },
+    });
+    if (userDb) {
+      throw new BusinessException(genResponse.fail(StatusCodeEnum.ACCOUNT_ALREADY_EXIST)); 
+    }
+    const hashedUserPassword = await bcrypt.hash(userPassword, 10);
     const userId = await genId();
     const toSaveUser = {
       userId,
       userType: UserType.PERSONAL,
       userAccount,
-      userPassword,
+      userPassword: hashedUserPassword,
       isActive: true,
     };
     await this.userModel.create(toSaveUser);
@@ -179,7 +187,7 @@ export class UserService {
 
   async postLogin(loginDto: PostLoginReqDto) {
     const { userAccount, userPassword } = loginDto;
-    const user = await this.userModel.findOne({
+    const userDb = await this.userModel.findOne({
       where: {
         userAccount,
       },
@@ -187,18 +195,18 @@ export class UserService {
     });
 
     // 账户不存在或者密码不匹配
-    if (!user || userPassword !== user.dataValues?.userPassword) {
+    if (!userDb || !await bcrypt.compare(userPassword, userDb.userPassword)) {
       throw new BusinessException(genResponse.fail(StatusCodeEnum.PASS_WRONG));
     }
     
     // 登录第一个tenant，没有就返回0代表个人
-    const tenantId = user.tenants?.[0]?.tenantId ?? 0;
-    const { roleId } = await this.userTenantRoleService.findRoleByUserIdTenantId(user.userId, tenantId);
+    const tenantId = userDb.tenants?.[0]?.tenantId ?? 0;
+    const { roleId } = await this.userTenantRoleService.findRoleByUserIdTenantId(userDb.userId, tenantId);
     const permissions = await this.roleService.getPermissionsByRoleId(roleId);
 
     // 生成和保存token
     const redisUser = {
-      ...plainToClass(RedisTokenUserDto, user),
+      ...plainToClass(RedisTokenUserDto, userDb),
       tenantId,
       roleId,
       permissions,

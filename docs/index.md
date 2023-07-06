@@ -27,4 +27,5 @@ create user -> create tenant -> auto generate roles by template, creating user b
 - 创建租户（角色/权限）
 
 - 删除租户
-
+- 密码加密
+- 忘记密码
