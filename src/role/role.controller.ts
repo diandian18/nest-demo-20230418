@@ -1,7 +1,7 @@
 import { ReqUser } from '@/auth/auth.decorator';
 import { RedisTokenUserDto } from '@/user/user.dto';
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
-import { PostRoleReqDto, PutRolePermissionReqDto } from './role.dto';
+import { PostRoleReqDto, PutRolePermissionReqDto as PutPermissionOfRoleReqDto } from './role.dto';
 import { RoleService } from './role.service';
 
 @Controller('role')
@@ -26,8 +26,8 @@ export class RoleController {
   @Put(':roleId')
   async putPermissionOfRole(
     @Param('roleId', ParseIntPipe) roleId: number,
-    @Body() putRolePermissionReqDto: PutRolePermissionReqDto,
+    @Body() putPermissionOfRoleReqDto: PutPermissionOfRoleReqDto,
   ) {
-    await this.roleService.putPermissionOfRole(roleId, putRolePermissionReqDto);
+    await this.roleService.putPermissionOfRole(roleId, putPermissionOfRoleReqDto);
   }
 }

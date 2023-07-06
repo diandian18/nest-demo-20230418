@@ -8,6 +8,7 @@ import { PermissionModel, RoleModel, RolePermissionModel } from './role.model';
 import { TransactionOpts } from '@/types';
 import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
+import { aryToMap } from '@/common/utils/ary';
 
 @Injectable({ scope: Scope.REQUEST })
 export class RoleService {
@@ -125,13 +126,5 @@ export class RoleService {
       await this.rolePermissionModel.bulkCreate(toSaveData, { transaction });
     });
   }
-}
-
-function aryToMap<K, T>(ary: T[], key: string) {
-  const map = new Map<K, T>();
-  ary.forEach(item => {
-    map.set(item[key], { ...item, children: [] });
-  });
-  return map;
 }
 

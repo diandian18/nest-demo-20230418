@@ -48,6 +48,11 @@ export class UserController {
     return await this.userService.postRefreshToken(refreshToken);
   }
 
+  @Post('logout')
+  async postLogout(@ReqUser() user: RedisTokenUserDto) {
+    await this.userService.postLogout(user);
+  }
+
   @Put(':userId')
   async putUser(@Param('userId', ParseIntPipe) userId: number, @Body() user: PutUserReqDto) {
     await this.userService.putUser(userId, user);

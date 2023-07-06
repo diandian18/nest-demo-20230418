@@ -31,7 +31,7 @@ export class AuthService {
    */
   async genToken(
     user: RedisTokenUserDto,
-    opts?: { replace?: boolean; refreshToken?: string },
+    opts?: { replace?: boolean },
   ) {
     const { replace = false } = opts ?? {};
     // 生成jwt
@@ -102,6 +102,24 @@ export class AuthService {
       refreshToken,
       expiration,
     };
+  }
+
+  async removeToken(user: RedisTokenUserDto, opts?: { replace?: boolean }) {
+    const { replace = false } = opts ?? {};
+    const { accessToken, refreshToken } = await this.getTokenByUserIdInRedis(user.userId);
+    const redisAccessTokenKey = getRedisAccessTokenKey(accessToken);
+    const redisRefreshTokenKey = getRedisRefreshTokenKey(refreshToken);
+    const promises = [
+      this.cacheManager.del(redisAccessTokenKey),
+      this.cacheManager.del(redisRefreshTokenKey),
+    ];
+    if (replace) {
+      const redisUserIdKey = getRedisAuthUserIdKey(user.userId);
+      promises.push(
+        this.cacheManager.del(redisUserIdKey),
+      );
+    }
+    await Promise.all(promises); 
   }
 
   /**

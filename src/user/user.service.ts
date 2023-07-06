@@ -239,6 +239,14 @@ export class UserService {
     });
   }
 
+  async postLogout(user: RedisTokenUserDto) {
+    await this.authService.removeToken(user, {
+      replace: isEnvTrue(
+        this.configService.get('LOGIN_REPLACE'),
+      ),
+    });
+  }
+
   async putUser(userId: number, user: PutUserReqDto) {
     await this.sequelize.transaction(async (transaction) => {
       const transactionOpt = { transaction };
