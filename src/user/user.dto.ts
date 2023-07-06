@@ -67,6 +67,11 @@ export class PostLoginRetDto extends RedisTokenUserDto {
   expiration: number;
 }
 
+export class PutResetPasswordReqDto {
+  oldPassword: string;
+  newPassword: string;
+}
+
 export class PutUserReqDto {
   @IsOptional()
   photos?: PhotoDto[];

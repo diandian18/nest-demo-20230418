@@ -1,6 +1,6 @@
 import { Public, ReqUser } from '@/auth/auth.decorator';
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
-import { PostLoginReqDto, PostRegisterReqDto, PostSwitchTenantReqDto, PutUserReqDto, RedisTokenUserDto, UserDto2 } from './user.dto';
+import { PostLoginReqDto, PostRegisterReqDto, PostSwitchTenantReqDto, PutResetPasswordReqDto, PutUserReqDto, RedisTokenUserDto, UserDto2 } from './user.dto';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -51,6 +51,11 @@ export class UserController {
   @Post('logout')
   async postLogout(@ReqUser() user: RedisTokenUserDto) {
     await this.userService.postLogout(user);
+  }
+
+  @Put('reset-password')
+  async putResetPassword(@ReqUser() user: RedisTokenUserDto, @Body() putResetPasswordReqDto: PutResetPasswordReqDto) {
+    await this.userService.putResetPassword(user, putResetPasswordReqDto);
   }
 
   @Put(':userId')

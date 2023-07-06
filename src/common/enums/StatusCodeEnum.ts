@@ -6,6 +6,7 @@ export default class StatusCodeEnum {
 
   static readonly ACCOUNT_ALREADY_EXIST = new this('100080', '帐号已存在');
   static readonly PASS_WRONG = new this('100088', '帐号或密码有误');
+  static readonly RESET_OLD_PASS_WRONG = new this('100089', '原密码不正确');
 
   static readonly UNAUTHORIZED = new this('401', '登录状态失效，请重新登录');
   static readonly REFRESH_TOKEN_EXPIRED = new this('100100', 'refreshToken已过期');

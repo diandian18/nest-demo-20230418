@@ -17,7 +17,7 @@ import { plainToClass, plainToInstance } from 'class-transformer';
 import { Sequelize } from 'sequelize-typescript';
 // import {InjectRepository} from '@nestjs/typeorm';
 // import {DataSource, Repository} from 'typeorm';
-import { GetMineResDto, PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, PostSwitchTenantReqDto, PutUserReqDto, RedisTokenUserDto, UserDto2 } from './user.dto';
+import { GetMineResDto, PostLoginReqDto, PostLoginRetDto, PostRegisterReqDto, PostSwitchTenantReqDto, PutResetPasswordReqDto, PutUserReqDto, RedisTokenUserDto, UserDto2 } from './user.dto';
 import { Photo, UserModel } from './user.model';
 import { UserType } from './user.types';
 // import {User} from './user.entity';
@@ -188,9 +188,7 @@ export class UserService {
   async postLogin(loginDto: PostLoginReqDto) {
     const { userAccount, userPassword } = loginDto;
     const userDb = await this.userModel.findOne({
-      where: {
-        userAccount,
-      },
+      where: { userAccount },
       include: [TenantModel, Photo],
     });
 
@@ -252,6 +250,24 @@ export class UserService {
       replace: isEnvTrue(
         this.configService.get('LOGIN_REPLACE'),
       ),
+    });
+  }
+  
+  async putResetPassword(user: RedisTokenUserDto, putResetPasswordReqDto: PutResetPasswordReqDto) {
+    const { userId } = user;
+    const { oldPassword, newPassword } = putResetPasswordReqDto;
+    const userDb = await this.userModel.findOne({
+      where: { userId },
+    });
+    if (!await bcrypt.compare(oldPassword, userDb.userPassword)) {
+      throw new BusinessException(genResponse.fail(StatusCodeEnum.RESET_OLD_PASS_WRONG));
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    this.userModel.update({
+      userPassword: hashedNewPassword,
+    }, {
+      where: { userId },
     });
   }
 
