@@ -8,6 +8,7 @@ async function bootstrap() {
     logger: WinstonModule.createLogger({
       instance: winstonInstance,
     }),
+    cors: true,
   });
   // app.useGlobalFilters(new HttpExceptionFilter())
   app.enableShutdownHooks();
