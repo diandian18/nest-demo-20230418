@@ -43,7 +43,7 @@ export class AuthService {
     });
     const accessTokenTTL = +this.configService.get('JWT_ACCESS_TOKEN_TTL');
     const refreshTokenTTL = +this.configService.get('JWT_REFRESH_TOKEN_TTL');
-    const expiration = Date.now() + refreshTokenTTL * 1000;
+    const expiration = Date.now() + accessTokenTTL * 1000;
 
     // 生成redis键值对
     const redisAccessTokenKey = getRedisAccessTokenKey(accessToken); // key格式: auth:access_token:{accessToken}

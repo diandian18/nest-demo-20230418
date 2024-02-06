@@ -306,19 +306,22 @@ export class UserService {
   }
 
   async getMine(user: RedisTokenUserDto) {
-    const { userId, tenantId } = user;
+    const { userId, userAccount, tenantId } = user;
     const userDb = await this.userModel.findOne({
       where: { userId },
       include: [TenantModel],
     });
     const { roleId } = await this.userTenantRoleService.findRoleByUserIdTenantId(userId, tenantId);
     const permissions = await this.roleService.getPermissionsByRoleId(roleId);
-    return plainToInstance(GetMineResDto, {
+    const ret = plainToInstance(GetMineResDto, {
       ...userDb,
+      userId,
+      userAccount,
       tenantId,
       roleId,
       permissions,
     });
+    return ret;
   }
 
   /**

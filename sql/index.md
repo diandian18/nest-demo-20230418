@@ -99,7 +99,7 @@ CREATE TABLE test_nest.user_tenant (
 ## role表
 
 ```sql
-CREATE TABLE `role_info` (
+CREATE TABLE `role` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT '0'  COMMENT '角色id',
   `role_name` varchar(64) NOT NULL DEFAULT '' COMMENT '角色名称',
   `tenant_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '租户id',
